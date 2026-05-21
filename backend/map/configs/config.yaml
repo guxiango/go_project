@@ -2,7 +2,7 @@ service:
   consul:
     addr: localhost:8500
   trace:
-    otlp_endpoint: 192.168.56.1:4317
+    otlp_endpoint: 127.0.0.1:4317
 
 server:
   http:
@@ -14,7 +14,7 @@ server:
 data:
   database:
     driver: mysql
-    source: root:root@tcp(127.0.0.1:3306)/test?parseTime=True&loc=Local
+    source: root:Mysql@123456@tcp(127.0.0.1:3306)/test?parseTime=True&loc=Local
   redis:
     addr: 127.0.0.1:6379
     read_timeout: 0.2s

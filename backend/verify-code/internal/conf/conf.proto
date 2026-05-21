@@ -15,7 +15,11 @@ message Service {
   message Consul {
     string addr = 1;
   }
+  message Trace {
+    string otlp_endpoint = 1;
+  }
   Consul consul = 1;
+  Trace trace = 2;
 }
 
 message Server {

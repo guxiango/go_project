@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
 
 	"verify-code/internal/conf"
-	
+	"verify-code/internal/trace"
+
 	"github.com/go-kratos/kratos/contrib/registry/consul/v2"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
@@ -20,8 +22,8 @@ import (
 
 // go build -ldflags "-X main.Version=x.y.z"
 var (
-	Name    string = "VerifyCode"
-	Version string = "1.0.0"
+	Name     string = "VerifyCode"
+	Version  string = "1.0.0"
 	flagconf string
 	id       = Name + "-" + uuid.NewString()
 )
@@ -64,6 +66,16 @@ func main() {
 	if err := c.Scan(&bc); err != nil {
 		panic(err)
 	}
+
+	otelEndpoint := ""
+	if bc.Service != nil && bc.Service.Trace != nil {
+		otelEndpoint = bc.Service.Trace.OtlpEndpoint
+	}
+	tp, err := trace.InitProvider(Name, Version, id, otelEndpoint)
+	if err != nil {
+		panic(err)
+	}
+	defer func() { _ = tp.Shutdown(context.Background()) }()
 
 	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Service, logger)
 	if err != nil {
