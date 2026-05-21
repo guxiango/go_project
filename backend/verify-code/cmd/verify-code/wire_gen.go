@@ -12,6 +12,7 @@ import (
 	"verify-code/internal/biz"
 	"verify-code/internal/conf"
 	"verify-code/internal/data"
+	"verify-code/internal/registry"
 	"verify-code/internal/server"
 	"verify-code/internal/service"
 )
@@ -23,7 +24,7 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, confData *conf.Data, confService *conf.Service, logger log.Logger) (*kratos.App, func(), error) {
 	dataData, cleanup, err := data.NewData(confData)
 	if err != nil {
 		return nil, nil, err
@@ -34,7 +35,17 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 	verifyCodeService := service.NewVerifyCodeService()
 	grpcServer := server.NewGRPCServer(confServer, greeterService, verifyCodeService, logger)
 	httpServer := server.NewHTTPServer(confServer, greeterService, logger)
-	app := newApp(logger, grpcServer, httpServer)
+	client, err := registry.NewConsulClient(confService)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	consulRegistry, err := registry.NewConsulRegistry(client)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	app := newApp(logger, grpcServer, httpServer, consulRegistry)
 	return app, func() {
 		cleanup()
 	}, nil

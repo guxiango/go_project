@@ -1,0 +1,106 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: ""
+    version: 0.0.1
+paths:
+    /driver/get-verify-code/{telephone}:
+        get:
+            tags:
+                - Driver
+            operationId: Driver_GetVerifyCode
+            parameters:
+                - name: telephone
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.driver.GetVerifyCodeReply'
+    /helloworld/{name}:
+        get:
+            tags:
+                - Greeter
+            description: Sends a greeting
+            operationId: Greeter_SayHello
+            parameters:
+                - name: name
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/helloworld.v1.HelloReply'
+    driver/submit-phone:
+        post:
+            tags:
+                - Driver
+            operationId: Driver_SubmitPhone
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.driver.SubmitPhoneRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.driver.SubmitPhoneReply'
+components:
+    schemas:
+        api.driver.GetVerifyCodeReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                verifyCode:
+                    type: string
+                verifyCodeTime:
+                    type: string
+                verifyCodeTtl:
+                    type: integer
+                    format: int32
+            description: 获取验证码回复
+        api.driver.SubmitPhoneReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                status:
+                    type: string
+            description: 提交手机号回复
+        api.driver.SubmitPhoneRequest:
+            type: object
+            properties:
+                telephone:
+                    type: string
+            description: 提交手机号请求
+        helloworld.v1.HelloReply:
+            type: object
+            properties:
+                message:
+                    type: string
+            description: The response message containing the greetings
+tags:
+    - name: Driver
+    - name: Greeter
+      description: The greeting service definition.

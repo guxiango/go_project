@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package api.driver;
+
+option go_package = "driver/api/driver;driver";
+
+import "google/api/annotations.proto";
+
+service Driver {
+	rpc GetVerifyCode (GetVerifyCodeRequest) returns (GetVerifyCodeReply) {
+		option (google.api.http) = {
+			get: "/driver/get-verify-code/{telephone}"
+		};
+	}
+
+	rpc SubmitPhone (SubmitPhoneRequest) returns (SubmitPhoneReply) {
+		option (google.api.http) = {
+			post: "driver/submit-phone",
+			body: "*",
+		};
+	}
+}
+
+// 提交手机号请求
+message SubmitPhoneRequest {
+	string telephone = 1;
+}
+
+// 提交手机号回复
+message SubmitPhoneReply {
+	int64 code = 1;
+	string message = 2;
+	string status = 3;		// 司机此时的状态
+}
+
+
+// 获取验证码请求
+message GetVerifyCodeRequest {
+	string telephone = 1;	// 手机号
+}
+
+// 获取验证码回复
+message GetVerifyCodeReply {
+	int64 code = 1;			// 状态码
+	string message = 2;		// 消息
+	string verify_code = 3;	// 验证码
+	int64 verify_code_time = 4;	// 验证码生成时间
+	int32 verify_code_ttl = 5;	// 验证码过期时间
+}

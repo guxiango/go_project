@@ -1,0 +1,49 @@
+package trace
+
+import (
+	"context"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.28.0"
+)
+
+// InitProvider 注册全局 TracerProvider；endpoint 非空时通过 OTLP gRPC 导出到 Collector。
+func InitProvider(serviceName, version, instanceID, endpoint string) (*sdktrace.TracerProvider, error) {
+	res, err := resource.New(context.Background(), resource.WithAttributes(
+		semconv.ServiceNameKey.String(serviceName),
+		semconv.ServiceVersionKey.String(version),
+		semconv.ServiceInstanceIDKey.String(instanceID),
+	))
+	if err != nil {
+		return nil, err
+	}
+
+	var tp *sdktrace.TracerProvider
+	if endpoint == "" {
+		tp = sdktrace.NewTracerProvider(
+			sdktrace.WithResource(res),
+			sdktrace.WithSampler(sdktrace.AlwaysSample()),
+		)
+	} else {
+		exporter, err := otlptracegrpc.New(context.Background(),
+			otlptracegrpc.WithInsecure(),
+			otlptracegrpc.WithEndpoint(endpoint),
+		)
+		if err != nil {
+			return nil, err
+		}
+		tp = sdktrace.NewTracerProvider(
+			sdktrace.WithBatcher(exporter),
+			sdktrace.WithResource(res),
+			sdktrace.WithSampler(sdktrace.AlwaysSample()),
+		)
+	}
+
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.TraceContext{})
+	return tp, nil
+}

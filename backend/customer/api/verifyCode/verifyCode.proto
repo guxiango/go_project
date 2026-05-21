@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package api.verifyCode;
+
+option go_package = "verify-code/api/verifyCode;verifyCode";
+
+service VerifyCode {
+	rpc GetVerifyCode (GetVerifyCodeRequest) returns (GetVerifyCodeReply);
+}
+
+// 验证码类型
+enum TYPE {
+	DEFAULT = 0; // 默认类型，数字和字母混合
+	DIGIT = 1; // 数字
+	LETTER = 2; // 字母
+	MIXED = 3; // 数字和字母混合
+}
+
+// 获取验证码
+message GetVerifyCodeRequest {
+	uint32 length = 1;
+	TYPE type = 2;
+}
+
+// 获取验证码回复
+message GetVerifyCodeReply {
+	string code = 1;
+}

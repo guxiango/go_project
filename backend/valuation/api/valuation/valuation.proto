@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package api.valuation;
+
+option go_package = "valuation/api/valuation;valuation";
+
+service Valuation {
+	rpc GetEstimatePrice (GetEstimatePriceRequest) returns (GetEstimatePriceReply);
+}
+
+message GetEstimatePriceRequest {
+	string origin = 1;			// 起点坐标	
+	string destination = 2;		// 终点坐标
+}
+
+message GetEstimatePriceReply {
+	string origin = 1;
+	string destination = 2;
+	int64 price = 3;			// 价格
+}

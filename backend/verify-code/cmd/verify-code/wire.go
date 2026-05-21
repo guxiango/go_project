@@ -9,6 +9,7 @@ import (
 	"verify-code/internal/biz"
 	"verify-code/internal/conf"
 	"verify-code/internal/data"
+	"verify-code/internal/registry"
 	"verify-code/internal/server"
 	"verify-code/internal/service"
 
@@ -18,6 +19,13 @@ import (
 )
 
 // wireApp init kratos application.
-func wireApp(*conf.Server, *conf.Data, log.Logger) (*kratos.App, func(), error) {
-	panic(wire.Build(server.ProviderSet, data.ProviderSet, biz.ProviderSet, service.ProviderSet, newApp))
+func wireApp(*conf.Server, *conf.Data, *conf.Service, log.Logger) (*kratos.App, func(), error) {
+	panic(wire.Build(
+		registry.ProviderSet,
+		server.ProviderSet,
+		data.ProviderSet,
+		biz.ProviderSet,
+		service.ProviderSet,
+		newApp,
+	))
 }
