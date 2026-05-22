@@ -10,6 +10,7 @@ paths:
         get:
             tags:
                 - Driver
+            description: 获取验证码
             operationId: Driver_GetVerifyCode
             parameters:
                 - name: telephone
@@ -24,6 +25,44 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.driver.GetVerifyCodeReply'
+    /driver/profile:
+        post:
+            tags:
+                - Driver
+            description: 更新司机资料
+            operationId: Driver_UpdateDriverProfile
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.driver.UpdateDriverProfileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.driver.UpdateDriverProfileReply'
+    /driver/status:
+        post:
+            tags:
+                - Driver
+            description: 修改司机的状态
+            operationId: Driver_UpdateWorkStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.driver.UpdateWorkStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.driver.UpdateWorkStatusReply'
     /helloworld/{name}:
         get:
             tags:
@@ -43,16 +82,17 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/helloworld.v1.HelloReply'
-    driver/submit-phone:
+    driver/login:
         post:
             tags:
                 - Driver
-            operationId: Driver_SubmitPhone
+            description: 登录
+            operationId: Driver_Login
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.driver.SubmitPhoneRequest'
+                            $ref: '#/components/schemas/api.driver.LoginRequest'
                 required: true
             responses:
                 "200":
@@ -60,7 +100,26 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.driver.SubmitPhoneReply'
+                                $ref: '#/components/schemas/api.driver.LoginReply'
+    driver/register:
+        post:
+            tags:
+                - Driver
+            description: 注册
+            operationId: Driver_Register
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.driver.RegisterRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.driver.RegisterReply'
 components:
     schemas:
         api.driver.GetVerifyCodeReply:
@@ -78,7 +137,34 @@ components:
                     type: integer
                     format: int32
             description: 获取验证码回复
-        api.driver.SubmitPhoneReply:
+        api.driver.LoginReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                token:
+                    type: string
+                tokenCreateAt:
+                    type: string
+                tokenTtl:
+                    type: integer
+                    format: int32
+                status:
+                    type: string
+                driverId:
+                    type: string
+            description: 登录回复
+        api.driver.LoginRequest:
+            type: object
+            properties:
+                telephone:
+                    type: string
+                verifyCode:
+                    type: string
+            description: 登录请求
+        api.driver.RegisterReply:
             type: object
             properties:
                 code:
@@ -87,13 +173,61 @@ components:
                     type: string
                 status:
                     type: string
-            description: 提交手机号回复
-        api.driver.SubmitPhoneRequest:
+                driverId:
+                    type: string
+            description: 注册回复
+        api.driver.RegisterRequest:
             type: object
             properties:
                 telephone:
                     type: string
-            description: 提交手机号请求
+                verifyCode:
+                    type: string
+            description: 注册请求
+        api.driver.UpdateDriverProfileReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+            description: 更新司机资料回复
+        api.driver.UpdateDriverProfileRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                idNumber:
+                    type: string
+                idImageA:
+                    type: string
+                idImageB:
+                    type: string
+                licenseImageA:
+                    type: string
+                licenseImageB:
+                    type: string
+                distinctCode:
+                    type: string
+                telephoneBak:
+                    type: string
+            description: 更新司机资料请求
+        api.driver.UpdateWorkStatusReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                status:
+                    type: string
+            description: 修改司机状态的回复
+        api.driver.UpdateWorkStatusRequest:
+            type: object
+            properties:
+                status:
+                    type: string
+            description: 修改司机状态的请求
         helloworld.v1.HelloReply:
             type: object
             properties:

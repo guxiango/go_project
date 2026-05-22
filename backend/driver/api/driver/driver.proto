@@ -7,30 +7,105 @@ option go_package = "driver/api/driver;driver";
 import "google/api/annotations.proto";
 
 service Driver {
+  // 获取验证码
 	rpc GetVerifyCode (GetVerifyCodeRequest) returns (GetVerifyCodeReply) {
 		option (google.api.http) = {
 			get: "/driver/get-verify-code/{telephone}"
 		};
 	}
 
-	rpc SubmitPhone (SubmitPhoneRequest) returns (SubmitPhoneReply) {
+  // 注册
+	rpc Register (RegisterRequest) returns (RegisterReply) {
 		option (google.api.http) = {
-			post: "driver/submit-phone",
+			post: "driver/register",
 			body: "*",
 		};
 	}
+  // 登录
+	rpc Login (LoginRequest) returns (LoginReply) {
+		option (google.api.http) = {
+			post: "driver/login",
+			body: "*",
+		};
+	}
+
+  // 更新司机资料
+  rpc UpdateDriverProfile (UpdateDriverProfileRequest) returns (UpdateDriverProfileReply) {
+    option (google.api.http) = {
+      post: "/driver/profile",
+      body: "*",
+    };
+  }
+
+  // 修改司机的状态
+  rpc UpdateWorkStatus(UpdateWorkStatusRequest) returns (UpdateWorkStatusReply) {
+    option (google.api.http) = {
+      post: "/driver/status"
+      body: "*"
+    };
+  }
+
 }
 
-// 提交手机号请求
-message SubmitPhoneRequest {
+// 修改司机状态的请求
+message UpdateWorkStatusRequest {
+  string status = 1;              // online/offline/busy
+}
+
+// 修改司机状态的回复
+message UpdateWorkStatusReply {
+  int64 code = 1;
+  string message = 2;
+  string status = 3;
+}
+
+// 更新司机资料请求
+message UpdateDriverProfileRequest {
+  string name = 1;
+  string id_number = 2;
+  string id_image_a = 3;
+  string id_image_b = 4;
+  string license_image_a = 5;
+  string license_image_b = 6;
+  string distinct_code = 7;
+  string telephone_bak = 8;
+}
+
+// 更新司机资料回复
+message UpdateDriverProfileReply {
+  int64  code = 1;
+  string message = 2;
+}
+
+// 登录请求
+message LoginRequest  {
 	string telephone = 1;
+	string verify_code = 2;
 }
 
-// 提交手机号回复
-message SubmitPhoneReply {
+// 登录回复
+message LoginReply {
 	int64 code = 1;
 	string message = 2;
-	string status = 3;		// 司机此时的状态
+	string token = 3;				// 登录成功后返回的token
+	int64 token_create_at = 4;		// token生成时间
+	int32 token_ttl = 5;			// token过期时间
+	string status = 6;				// 司机的状态
+	uint64 driver_id = 7;			// 司机ID
+}
+
+// 注册请求
+message RegisterRequest {
+	string telephone = 1;			// 手机号
+	string verify_code = 2;			// 验证码
+}
+
+// 注册回复
+message RegisterReply {
+	int64 code = 1;				
+	string message = 2;				
+	string status = 3;
+	uint64 driver_id = 4;         // 司机ID
 }
 
 

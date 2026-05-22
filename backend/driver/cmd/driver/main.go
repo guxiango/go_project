@@ -22,8 +22,8 @@ import (
 
 // go build -ldflags "-X main.Version=x.y.z"
 var (
-	Name    string = "Driver"
-	Version string = "1.0.0"
+	Name     string = "Driver"
+	Version  string = "1.0.0"
 	flagconf string
 	id       = Name + "-" + uuid.NewString()
 )
@@ -77,7 +77,7 @@ func main() {
 	}
 	defer func() { _ = tp.Shutdown(context.Background()) }()
 
-	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Service, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Service, bc.Security, logger)
 	if err != nil {
 		panic(err)
 	}

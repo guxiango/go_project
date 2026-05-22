@@ -9,6 +9,16 @@ message Bootstrap {
   Server server = 1;
   Data data = 2;
   Service service = 3;
+  Security security = 4;
+}
+
+
+message Security {
+  message JWT {
+    string secret = 1;
+    int64 ttl_seconds = 2;
+  }
+  JWT jwt = 1;
 }
 
 message Server {
