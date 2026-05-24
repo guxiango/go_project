@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.29.3
-// source: driver/driver.proto
+// source: api/driver/driver.proto
 
 package driver
 
@@ -19,11 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Driver_GetVerifyCode_FullMethodName       = "/api.driver.Driver/GetVerifyCode"
-	Driver_Register_FullMethodName            = "/api.driver.Driver/Register"
-	Driver_Login_FullMethodName               = "/api.driver.Driver/Login"
-	Driver_UpdateDriverProfile_FullMethodName = "/api.driver.Driver/UpdateDriverProfile"
-	Driver_UpdateWorkStatus_FullMethodName    = "/api.driver.Driver/UpdateWorkStatus"
+	Driver_GetVerifyCode_FullMethodName              = "/api.driver.Driver/GetVerifyCode"
+	Driver_Register_FullMethodName                   = "/api.driver.Driver/Register"
+	Driver_Login_FullMethodName                      = "/api.driver.Driver/Login"
+	Driver_UpdateDriverProfile_FullMethodName        = "/api.driver.Driver/UpdateDriverProfile"
+	Driver_UpdateWorkStatus_FullMethodName           = "/api.driver.Driver/UpdateWorkStatus"
+	Driver_InternalAuditDriverProfile_FullMethodName = "/api.driver.Driver/InternalAuditDriverProfile"
+	Driver_InternalListPendingDrivers_FullMethodName = "/api.driver.Driver/InternalListPendingDrivers"
 )
 
 // DriverClient is the client API for Driver service.
@@ -40,6 +42,10 @@ type DriverClient interface {
 	UpdateDriverProfile(ctx context.Context, in *UpdateDriverProfileRequest, opts ...grpc.CallOption) (*UpdateDriverProfileReply, error)
 	// 修改司机的状态
 	UpdateWorkStatus(ctx context.Context, in *UpdateWorkStatusRequest, opts ...grpc.CallOption) (*UpdateWorkStatusReply, error)
+	// 管理员审核司机的信息
+	InternalAuditDriverProfile(ctx context.Context, in *InternalAuditDriverProfileRequest, opts ...grpc.CallOption) (*InternalAuditDriverProfileReply, error)
+	// 获取需要验证的司机的信息
+	InternalListPendingDrivers(ctx context.Context, in *InternalListPendingDriversRequest, opts ...grpc.CallOption) (*InternalListPendingDriversReply, error)
 }
 
 type driverClient struct {
@@ -100,6 +106,26 @@ func (c *driverClient) UpdateWorkStatus(ctx context.Context, in *UpdateWorkStatu
 	return out, nil
 }
 
+func (c *driverClient) InternalAuditDriverProfile(ctx context.Context, in *InternalAuditDriverProfileRequest, opts ...grpc.CallOption) (*InternalAuditDriverProfileReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InternalAuditDriverProfileReply)
+	err := c.cc.Invoke(ctx, Driver_InternalAuditDriverProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *driverClient) InternalListPendingDrivers(ctx context.Context, in *InternalListPendingDriversRequest, opts ...grpc.CallOption) (*InternalListPendingDriversReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InternalListPendingDriversReply)
+	err := c.cc.Invoke(ctx, Driver_InternalListPendingDrivers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DriverServer is the server API for Driver service.
 // All implementations must embed UnimplementedDriverServer
 // for forward compatibility.
@@ -114,6 +140,10 @@ type DriverServer interface {
 	UpdateDriverProfile(context.Context, *UpdateDriverProfileRequest) (*UpdateDriverProfileReply, error)
 	// 修改司机的状态
 	UpdateWorkStatus(context.Context, *UpdateWorkStatusRequest) (*UpdateWorkStatusReply, error)
+	// 管理员审核司机的信息
+	InternalAuditDriverProfile(context.Context, *InternalAuditDriverProfileRequest) (*InternalAuditDriverProfileReply, error)
+	// 获取需要验证的司机的信息
+	InternalListPendingDrivers(context.Context, *InternalListPendingDriversRequest) (*InternalListPendingDriversReply, error)
 	mustEmbedUnimplementedDriverServer()
 }
 
@@ -138,6 +168,12 @@ func (UnimplementedDriverServer) UpdateDriverProfile(context.Context, *UpdateDri
 }
 func (UnimplementedDriverServer) UpdateWorkStatus(context.Context, *UpdateWorkStatusRequest) (*UpdateWorkStatusReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateWorkStatus not implemented")
+}
+func (UnimplementedDriverServer) InternalAuditDriverProfile(context.Context, *InternalAuditDriverProfileRequest) (*InternalAuditDriverProfileReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method InternalAuditDriverProfile not implemented")
+}
+func (UnimplementedDriverServer) InternalListPendingDrivers(context.Context, *InternalListPendingDriversRequest) (*InternalListPendingDriversReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method InternalListPendingDrivers not implemented")
 }
 func (UnimplementedDriverServer) mustEmbedUnimplementedDriverServer() {}
 func (UnimplementedDriverServer) testEmbeddedByValue()                {}
@@ -250,6 +286,42 @@ func _Driver_UpdateWorkStatus_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Driver_InternalAuditDriverProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InternalAuditDriverProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DriverServer).InternalAuditDriverProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Driver_InternalAuditDriverProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DriverServer).InternalAuditDriverProfile(ctx, req.(*InternalAuditDriverProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Driver_InternalListPendingDrivers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InternalListPendingDriversRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DriverServer).InternalListPendingDrivers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Driver_InternalListPendingDrivers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DriverServer).InternalListPendingDrivers(ctx, req.(*InternalListPendingDriversRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Driver_ServiceDesc is the grpc.ServiceDesc for Driver service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -277,7 +349,15 @@ var Driver_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "UpdateWorkStatus",
 			Handler:    _Driver_UpdateWorkStatus_Handler,
 		},
+		{
+			MethodName: "InternalAuditDriverProfile",
+			Handler:    _Driver_InternalAuditDriverProfile_Handler,
+		},
+		{
+			MethodName: "InternalListPendingDrivers",
+			Handler:    _Driver_InternalListPendingDrivers_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "driver/driver.proto",
+	Metadata: "api/driver/driver.proto",
 }

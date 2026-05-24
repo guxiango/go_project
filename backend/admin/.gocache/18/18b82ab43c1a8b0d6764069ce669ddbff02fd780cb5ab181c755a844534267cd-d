@@ -1,0 +1,4 @@
+./client.go
+./registry.go
+./service.go
+./watcher.go

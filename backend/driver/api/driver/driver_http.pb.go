@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.9.2
 // - protoc             v5.29.3
-// source: driver/driver.proto
+// source: api/driver/driver.proto
 
 package driver
 

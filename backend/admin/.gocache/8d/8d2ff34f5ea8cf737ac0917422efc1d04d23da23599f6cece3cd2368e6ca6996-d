@@ -1,0 +1,4 @@
+./error_reason.pb.go
+./greeter.pb.go
+./greeter_grpc.pb.go
+./greeter_http.pb.go

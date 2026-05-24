@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package api.admin;
+
+option go_package = "admin/api/admin;admin";
+
+import "google/api/annotations.proto";
+
+service Admin {
+  rpc Login(AdminLoginRequest) returns (AdminLoginReply) {
+    option (google.api.http) = {
+      post: "/admin/login"
+      body: "*"
+    };
+  }
+
+  rpc AuditDriverProfile(AuditDriverProfileRequest) returns (AuditDriverProfileReply) {
+    option (google.api.http) = {
+      post: "/admin/driver/profile/audit"
+      body: "*"
+    };
+  }
+
+  rpc ListPendingDrivers(ListPendingDriversRequest) returns (ListPendingDriversReply) {
+    option (google.api.http) = {
+      get: "/admin/driver/pending"
+    };
+  }
+}
+
+message AdminLoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message AdminLoginReply {
+  int64 code = 1;
+  string message = 2;
+  string token = 3;
+  int64 token_create_at = 4;
+  int32 token_ttl = 5;
+  string role = 6;
+}
+
+message AuditDriverProfileRequest {
+  uint64 driver_id = 1;
+  bool approved = 2;
+  string reason = 3;
+}
+
+message AuditDriverProfileReply {
+  int64 code = 1;
+  string message = 2;
+  string status = 3;
+}
+
+message ListPendingDriversRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message PendingDriver {
+  uint64 driver_id = 1;
+  string name = 2;
+  string telephone = 3;
+  string status = 4;
+  string id_number = 5;
+  string id_image_a = 6;
+  string id_image_b = 7;
+  string license_image_a = 8;
+  string license_image_b = 9;
+  string distinct_code = 10;
+  int64 updated_at = 11;
+}
+
+message ListPendingDriversReply {
+  int64 code = 1;
+  string message = 2;
+  int64 total = 3;
+  repeated PendingDriver drivers = 4;
+}

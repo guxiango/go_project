@@ -1,0 +1,4 @@
+./metadata.pb.go
+./metadata_grpc.pb.go
+./metadata_http.pb.go
+./server.go

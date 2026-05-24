@@ -174,3 +174,45 @@ func (d *DriverData) UpdateDriverStatusByID(ctx context.Context, id uint, curren
 	}
 	return nil
 }
+
+// AuditDriverStatusByID 根据id审核司机资料并修改状态
+func (d *DriverData) AuditDriverStatusByID(ctx context.Context, id uint, currentStatus string, targetStatus string) error {
+	result := d.data.Mdb.WithContext(ctx).
+		Model(&biz.Driver{}).
+		Where("id = ? AND status = ?", id, currentStatus).
+		Updates(map[string]interface{}{
+			"status":  sql.NullString{String: targetStatus, Valid: true},
+			"auditat": sql.NullTime{Time: time.Now(), Valid: true},
+		})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New("driver status changed")
+	}
+	return nil
+}
+
+// 根据状态分页查询司机信息
+func (d *DriverData) ListDriversByStatus(ctx context.Context, status string, offset int, limit int) ([]*biz.Driver, int64, error) {
+	var drivers []*biz.Driver
+	var total int64
+	err := d.data.Mdb.WithContext(ctx).
+		Model(&biz.Driver{}).
+		Where("status = ?", status).
+		Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	err = d.data.Mdb.WithContext(ctx).
+		Model(&biz.Driver{}).
+		Where("status = ?", status).
+		Order("updated_at desc").
+		Offset(offset).
+		Limit(limit).
+		Find(&drivers).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return drivers, total, nil
+}

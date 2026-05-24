@@ -367,3 +367,103 @@ func canChangeWorkStatus(currentStatus, targetStatus string) bool {
 		return false
 	}
 }
+
+// InternalAuditDriverProfile 管理员审核司机信息并修改司机状态
+func (s *DriverService) InternalAuditDriverProfile(ctx context.Context, req *pb.InternalAuditDriverProfileRequest) (*pb.InternalAuditDriverProfileReply, error) {
+	if req.GetDriverId() == 0 || req.GetAdminId() == 0 {
+		return &pb.InternalAuditDriverProfileReply{
+			Code:    1,
+			Message: "参数错误",
+		}, nil
+	}
+
+	driver, err := s.DriverData.GetDriverByID(ctx, uint(req.GetDriverId()))
+	if err != nil {
+		return &pb.InternalAuditDriverProfileReply{
+			Code:    1,
+			Message: "获取司机信息失败",
+		}, nil
+	}
+
+	currentStatus := ""
+	if driver.Status.Valid {
+		currentStatus = driver.Status.String
+	}
+	if currentStatus != driverBiz.DriverStatusPending {
+		return &pb.InternalAuditDriverProfileReply{
+			Code:    1,
+			Message: "当前司机状态不允许审核",
+			Status:  currentStatus,
+		}, nil
+	}
+
+	targetStatus := driverBiz.DriverStatusStop
+	if req.GetApproved() {
+		targetStatus = driverBiz.DriverStatusApproved
+	} else if strings.TrimSpace(req.GetReason()) == "" {
+		return &pb.InternalAuditDriverProfileReply{
+			Code:    1,
+			Message: "审核拒绝时原因不能为空",
+			Status:  currentStatus,
+		}, nil
+	}
+
+	if err := s.DriverData.AuditDriverStatusByID(ctx, uint(req.GetDriverId()), currentStatus, targetStatus); err != nil {
+		return &pb.InternalAuditDriverProfileReply{
+			Code:    1,
+			Message: "审核司机信息失败",
+			Status:  currentStatus,
+		}, nil
+	}
+
+	return &pb.InternalAuditDriverProfileReply{
+		Code:    0,
+		Message: "审核司机信息成功",
+		Status:  targetStatus,
+	}, nil
+}
+
+// InternalListPendingDrivers 给管理员返回司机相关的信息
+func (s *DriverService) InternalListPendingDrivers(ctx context.Context, req *pb.InternalListPendingDriversRequest) (*pb.InternalListPendingDriversReply, error) {
+	page := req.GetPage()
+	if page <= 0 {
+		page = 1
+	}
+	pageSize := req.GetPageSize()
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+	if pageSize > 100 {
+		pageSize = 100
+	}
+	offset := (page - 1) * pageSize
+	drivers, total, err := s.DriverData.ListDriversByStatus(ctx, driverBiz.DriverStatusPending, int(offset), int(pageSize))
+	if err != nil {
+		return &pb.InternalListPendingDriversReply{
+			Code:    1,
+			Message: "获取司机信息失败",
+		}, nil
+	}
+	var msg []*pb.InternalPendingDriver
+	for _, driver := range drivers {
+		msg = append(msg, &pb.InternalPendingDriver{
+			DriverId:      uint64(driver.ID),
+			Name:          driver.Name.String,
+			Telephone:     driver.Telephone,
+			Status:        driver.Status.String,
+			IdNumber:      driver.IdNumber.String,
+			IdImageA:      driver.IdImageA.String,
+			IdImageB:      driver.IdImageB.String,
+			LicenseImageA: driver.LicenseImageA.String,
+			LicenseImageB: driver.LicenseImageB.String,
+			DistinctCode:  driver.DistinctCode.String,
+			UpdatedAt:     driver.UpdatedAt.Unix(),
+		})
+	}
+	return &pb.InternalListPendingDriversReply{
+		Code:    0,
+		Message: "获取司机信息成功",
+		Total:   total,
+		Drivers: msg,
+	}, nil
+}

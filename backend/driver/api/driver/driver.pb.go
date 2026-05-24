@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.29.3
-// source: driver/driver.proto
+// source: api/driver/driver.proto
 
 package driver
 
@@ -22,6 +22,382 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// 获取司机信息的请求
+type InternalListPendingDriversRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalListPendingDriversRequest) Reset() {
+	*x = InternalListPendingDriversRequest{}
+	mi := &file_api_driver_driver_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalListPendingDriversRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalListPendingDriversRequest) ProtoMessage() {}
+
+func (x *InternalListPendingDriversRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_driver_driver_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalListPendingDriversRequest.ProtoReflect.Descriptor instead.
+func (*InternalListPendingDriversRequest) Descriptor() ([]byte, []int) {
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *InternalListPendingDriversRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *InternalListPendingDriversRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type InternalPendingDriver struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DriverId      uint64                 `protobuf:"varint,1,opt,name=driver_id,json=driverId,proto3" json:"driver_id,omitempty"`  // 司机id
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`                           // 司机名字
+	Telephone     string                 `protobuf:"bytes,3,opt,name=telephone,proto3" json:"telephone,omitempty"`                 // 手机号
+	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`                       // 当前状态
+	IdNumber      string                 `protobuf:"bytes,5,opt,name=id_number,json=idNumber,proto3" json:"id_number,omitempty"`   // 身份证号
+	IdImageA      string                 `protobuf:"bytes,6,opt,name=id_image_a,json=idImageA,proto3" json:"id_image_a,omitempty"` // 省份证正反面
+	IdImageB      string                 `protobuf:"bytes,7,opt,name=id_image_b,json=idImageB,proto3" json:"id_image_b,omitempty"`
+	LicenseImageA string                 `protobuf:"bytes,8,opt,name=license_image_a,json=licenseImageA,proto3" json:"license_image_a,omitempty"` // 驾驶证正反面
+	LicenseImageB string                 `protobuf:"bytes,9,opt,name=license_image_b,json=licenseImageB,proto3" json:"license_image_b,omitempty"`
+	DistinctCode  string                 `protobuf:"bytes,10,opt,name=distinct_code,json=distinctCode,proto3" json:"distinct_code,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"` // 信息的更新时间
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalPendingDriver) Reset() {
+	*x = InternalPendingDriver{}
+	mi := &file_api_driver_driver_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalPendingDriver) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalPendingDriver) ProtoMessage() {}
+
+func (x *InternalPendingDriver) ProtoReflect() protoreflect.Message {
+	mi := &file_api_driver_driver_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalPendingDriver.ProtoReflect.Descriptor instead.
+func (*InternalPendingDriver) Descriptor() ([]byte, []int) {
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *InternalPendingDriver) GetDriverId() uint64 {
+	if x != nil {
+		return x.DriverId
+	}
+	return 0
+}
+
+func (x *InternalPendingDriver) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *InternalPendingDriver) GetTelephone() string {
+	if x != nil {
+		return x.Telephone
+	}
+	return ""
+}
+
+func (x *InternalPendingDriver) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *InternalPendingDriver) GetIdNumber() string {
+	if x != nil {
+		return x.IdNumber
+	}
+	return ""
+}
+
+func (x *InternalPendingDriver) GetIdImageA() string {
+	if x != nil {
+		return x.IdImageA
+	}
+	return ""
+}
+
+func (x *InternalPendingDriver) GetIdImageB() string {
+	if x != nil {
+		return x.IdImageB
+	}
+	return ""
+}
+
+func (x *InternalPendingDriver) GetLicenseImageA() string {
+	if x != nil {
+		return x.LicenseImageA
+	}
+	return ""
+}
+
+func (x *InternalPendingDriver) GetLicenseImageB() string {
+	if x != nil {
+		return x.LicenseImageB
+	}
+	return ""
+}
+
+func (x *InternalPendingDriver) GetDistinctCode() string {
+	if x != nil {
+		return x.DistinctCode
+	}
+	return ""
+}
+
+func (x *InternalPendingDriver) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+// 获取司机信息的回复
+type InternalListPendingDriversReply struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Code          int64                    `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                   `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Total         int64                    `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
+	Drivers       []*InternalPendingDriver `protobuf:"bytes,4,rep,name=drivers,proto3" json:"drivers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalListPendingDriversReply) Reset() {
+	*x = InternalListPendingDriversReply{}
+	mi := &file_api_driver_driver_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalListPendingDriversReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalListPendingDriversReply) ProtoMessage() {}
+
+func (x *InternalListPendingDriversReply) ProtoReflect() protoreflect.Message {
+	mi := &file_api_driver_driver_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalListPendingDriversReply.ProtoReflect.Descriptor instead.
+func (*InternalListPendingDriversReply) Descriptor() ([]byte, []int) {
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *InternalListPendingDriversReply) GetCode() int64 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *InternalListPendingDriversReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *InternalListPendingDriversReply) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *InternalListPendingDriversReply) GetDrivers() []*InternalPendingDriver {
+	if x != nil {
+		return x.Drivers
+	}
+	return nil
+}
+
+// 管理员审核的请求
+type InternalAuditDriverProfileRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DriverId      uint64                 `protobuf:"varint,1,opt,name=driver_id,json=driverId,proto3" json:"driver_id,omitempty"`
+	AdminId       uint64                 `protobuf:"varint,2,opt,name=admin_id,json=adminId,proto3" json:"admin_id,omitempty"`
+	Approved      bool                   `protobuf:"varint,3,opt,name=approved,proto3" json:"approved,omitempty"`
+	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalAuditDriverProfileRequest) Reset() {
+	*x = InternalAuditDriverProfileRequest{}
+	mi := &file_api_driver_driver_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalAuditDriverProfileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalAuditDriverProfileRequest) ProtoMessage() {}
+
+func (x *InternalAuditDriverProfileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_driver_driver_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalAuditDriverProfileRequest.ProtoReflect.Descriptor instead.
+func (*InternalAuditDriverProfileRequest) Descriptor() ([]byte, []int) {
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *InternalAuditDriverProfileRequest) GetDriverId() uint64 {
+	if x != nil {
+		return x.DriverId
+	}
+	return 0
+}
+
+func (x *InternalAuditDriverProfileRequest) GetAdminId() uint64 {
+	if x != nil {
+		return x.AdminId
+	}
+	return 0
+}
+
+func (x *InternalAuditDriverProfileRequest) GetApproved() bool {
+	if x != nil {
+		return x.Approved
+	}
+	return false
+}
+
+func (x *InternalAuditDriverProfileRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+// 管理员审核的回复
+type InternalAuditDriverProfileReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          int64                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalAuditDriverProfileReply) Reset() {
+	*x = InternalAuditDriverProfileReply{}
+	mi := &file_api_driver_driver_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalAuditDriverProfileReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalAuditDriverProfileReply) ProtoMessage() {}
+
+func (x *InternalAuditDriverProfileReply) ProtoReflect() protoreflect.Message {
+	mi := &file_api_driver_driver_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalAuditDriverProfileReply.ProtoReflect.Descriptor instead.
+func (*InternalAuditDriverProfileReply) Descriptor() ([]byte, []int) {
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *InternalAuditDriverProfileReply) GetCode() int64 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *InternalAuditDriverProfileReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *InternalAuditDriverProfileReply) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 // 修改司机状态的请求
 type UpdateWorkStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -32,7 +408,7 @@ type UpdateWorkStatusRequest struct {
 
 func (x *UpdateWorkStatusRequest) Reset() {
 	*x = UpdateWorkStatusRequest{}
-	mi := &file_driver_driver_proto_msgTypes[0]
+	mi := &file_api_driver_driver_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +420,7 @@ func (x *UpdateWorkStatusRequest) String() string {
 func (*UpdateWorkStatusRequest) ProtoMessage() {}
 
 func (x *UpdateWorkStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_driver_driver_proto_msgTypes[0]
+	mi := &file_api_driver_driver_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +433,7 @@ func (x *UpdateWorkStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateWorkStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateWorkStatusRequest) Descriptor() ([]byte, []int) {
-	return file_driver_driver_proto_rawDescGZIP(), []int{0}
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *UpdateWorkStatusRequest) GetStatus() string {
@@ -79,7 +455,7 @@ type UpdateWorkStatusReply struct {
 
 func (x *UpdateWorkStatusReply) Reset() {
 	*x = UpdateWorkStatusReply{}
-	mi := &file_driver_driver_proto_msgTypes[1]
+	mi := &file_api_driver_driver_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -91,7 +467,7 @@ func (x *UpdateWorkStatusReply) String() string {
 func (*UpdateWorkStatusReply) ProtoMessage() {}
 
 func (x *UpdateWorkStatusReply) ProtoReflect() protoreflect.Message {
-	mi := &file_driver_driver_proto_msgTypes[1]
+	mi := &file_api_driver_driver_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -104,7 +480,7 @@ func (x *UpdateWorkStatusReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateWorkStatusReply.ProtoReflect.Descriptor instead.
 func (*UpdateWorkStatusReply) Descriptor() ([]byte, []int) {
-	return file_driver_driver_proto_rawDescGZIP(), []int{1}
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UpdateWorkStatusReply) GetCode() int64 {
@@ -145,7 +521,7 @@ type UpdateDriverProfileRequest struct {
 
 func (x *UpdateDriverProfileRequest) Reset() {
 	*x = UpdateDriverProfileRequest{}
-	mi := &file_driver_driver_proto_msgTypes[2]
+	mi := &file_api_driver_driver_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -157,7 +533,7 @@ func (x *UpdateDriverProfileRequest) String() string {
 func (*UpdateDriverProfileRequest) ProtoMessage() {}
 
 func (x *UpdateDriverProfileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_driver_driver_proto_msgTypes[2]
+	mi := &file_api_driver_driver_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -170,7 +546,7 @@ func (x *UpdateDriverProfileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDriverProfileRequest.ProtoReflect.Descriptor instead.
 func (*UpdateDriverProfileRequest) Descriptor() ([]byte, []int) {
-	return file_driver_driver_proto_rawDescGZIP(), []int{2}
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateDriverProfileRequest) GetName() string {
@@ -240,7 +616,7 @@ type UpdateDriverProfileReply struct {
 
 func (x *UpdateDriverProfileReply) Reset() {
 	*x = UpdateDriverProfileReply{}
-	mi := &file_driver_driver_proto_msgTypes[3]
+	mi := &file_api_driver_driver_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -252,7 +628,7 @@ func (x *UpdateDriverProfileReply) String() string {
 func (*UpdateDriverProfileReply) ProtoMessage() {}
 
 func (x *UpdateDriverProfileReply) ProtoReflect() protoreflect.Message {
-	mi := &file_driver_driver_proto_msgTypes[3]
+	mi := &file_api_driver_driver_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -265,7 +641,7 @@ func (x *UpdateDriverProfileReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDriverProfileReply.ProtoReflect.Descriptor instead.
 func (*UpdateDriverProfileReply) Descriptor() ([]byte, []int) {
-	return file_driver_driver_proto_rawDescGZIP(), []int{3}
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateDriverProfileReply) GetCode() int64 {
@@ -293,7 +669,7 @@ type LoginRequest struct {
 
 func (x *LoginRequest) Reset() {
 	*x = LoginRequest{}
-	mi := &file_driver_driver_proto_msgTypes[4]
+	mi := &file_api_driver_driver_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -305,7 +681,7 @@ func (x *LoginRequest) String() string {
 func (*LoginRequest) ProtoMessage() {}
 
 func (x *LoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_driver_driver_proto_msgTypes[4]
+	mi := &file_api_driver_driver_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -318,7 +694,7 @@ func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
 func (*LoginRequest) Descriptor() ([]byte, []int) {
-	return file_driver_driver_proto_rawDescGZIP(), []int{4}
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *LoginRequest) GetTelephone() string {
@@ -351,7 +727,7 @@ type LoginReply struct {
 
 func (x *LoginReply) Reset() {
 	*x = LoginReply{}
-	mi := &file_driver_driver_proto_msgTypes[5]
+	mi := &file_api_driver_driver_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -363,7 +739,7 @@ func (x *LoginReply) String() string {
 func (*LoginReply) ProtoMessage() {}
 
 func (x *LoginReply) ProtoReflect() protoreflect.Message {
-	mi := &file_driver_driver_proto_msgTypes[5]
+	mi := &file_api_driver_driver_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -376,7 +752,7 @@ func (x *LoginReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginReply.ProtoReflect.Descriptor instead.
 func (*LoginReply) Descriptor() ([]byte, []int) {
-	return file_driver_driver_proto_rawDescGZIP(), []int{5}
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *LoginReply) GetCode() int64 {
@@ -439,7 +815,7 @@ type RegisterRequest struct {
 
 func (x *RegisterRequest) Reset() {
 	*x = RegisterRequest{}
-	mi := &file_driver_driver_proto_msgTypes[6]
+	mi := &file_api_driver_driver_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -451,7 +827,7 @@ func (x *RegisterRequest) String() string {
 func (*RegisterRequest) ProtoMessage() {}
 
 func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_driver_driver_proto_msgTypes[6]
+	mi := &file_api_driver_driver_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -464,7 +840,7 @@ func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterRequest.ProtoReflect.Descriptor instead.
 func (*RegisterRequest) Descriptor() ([]byte, []int) {
-	return file_driver_driver_proto_rawDescGZIP(), []int{6}
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *RegisterRequest) GetTelephone() string {
@@ -494,7 +870,7 @@ type RegisterReply struct {
 
 func (x *RegisterReply) Reset() {
 	*x = RegisterReply{}
-	mi := &file_driver_driver_proto_msgTypes[7]
+	mi := &file_api_driver_driver_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -506,7 +882,7 @@ func (x *RegisterReply) String() string {
 func (*RegisterReply) ProtoMessage() {}
 
 func (x *RegisterReply) ProtoReflect() protoreflect.Message {
-	mi := &file_driver_driver_proto_msgTypes[7]
+	mi := &file_api_driver_driver_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -519,7 +895,7 @@ func (x *RegisterReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterReply.ProtoReflect.Descriptor instead.
 func (*RegisterReply) Descriptor() ([]byte, []int) {
-	return file_driver_driver_proto_rawDescGZIP(), []int{7}
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *RegisterReply) GetCode() int64 {
@@ -560,7 +936,7 @@ type GetVerifyCodeRequest struct {
 
 func (x *GetVerifyCodeRequest) Reset() {
 	*x = GetVerifyCodeRequest{}
-	mi := &file_driver_driver_proto_msgTypes[8]
+	mi := &file_api_driver_driver_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -572,7 +948,7 @@ func (x *GetVerifyCodeRequest) String() string {
 func (*GetVerifyCodeRequest) ProtoMessage() {}
 
 func (x *GetVerifyCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_driver_driver_proto_msgTypes[8]
+	mi := &file_api_driver_driver_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -585,7 +961,7 @@ func (x *GetVerifyCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetVerifyCodeRequest.ProtoReflect.Descriptor instead.
 func (*GetVerifyCodeRequest) Descriptor() ([]byte, []int) {
-	return file_driver_driver_proto_rawDescGZIP(), []int{8}
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetVerifyCodeRequest) GetTelephone() string {
@@ -609,7 +985,7 @@ type GetVerifyCodeReply struct {
 
 func (x *GetVerifyCodeReply) Reset() {
 	*x = GetVerifyCodeReply{}
-	mi := &file_driver_driver_proto_msgTypes[9]
+	mi := &file_api_driver_driver_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -621,7 +997,7 @@ func (x *GetVerifyCodeReply) String() string {
 func (*GetVerifyCodeReply) ProtoMessage() {}
 
 func (x *GetVerifyCodeReply) ProtoReflect() protoreflect.Message {
-	mi := &file_driver_driver_proto_msgTypes[9]
+	mi := &file_api_driver_driver_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -634,7 +1010,7 @@ func (x *GetVerifyCodeReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetVerifyCodeReply.ProtoReflect.Descriptor instead.
 func (*GetVerifyCodeReply) Descriptor() ([]byte, []int) {
-	return file_driver_driver_proto_rawDescGZIP(), []int{9}
+	return file_api_driver_driver_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetVerifyCodeReply) GetCode() int64 {
@@ -672,12 +1048,45 @@ func (x *GetVerifyCodeReply) GetVerifyCodeTtl() int32 {
 	return 0
 }
 
-var File_driver_driver_proto protoreflect.FileDescriptor
+var File_api_driver_driver_proto protoreflect.FileDescriptor
 
-const file_driver_driver_proto_rawDesc = "" +
+const file_api_driver_driver_proto_rawDesc = "" +
 	"\n" +
-	"\x13driver/driver.proto\x12\n" +
-	"api.driver\x1a\x1cgoogle/api/annotations.proto\"1\n" +
+	"\x17api/driver/driver.proto\x12\n" +
+	"api.driver\x1a\x1cgoogle/api/annotations.proto\"T\n" +
+	"!InternalListPendingDriversRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\xeb\x02\n" +
+	"\x15InternalPendingDriver\x12\x1b\n" +
+	"\tdriver_id\x18\x01 \x01(\x04R\bdriverId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1c\n" +
+	"\ttelephone\x18\x03 \x01(\tR\ttelephone\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x1b\n" +
+	"\tid_number\x18\x05 \x01(\tR\bidNumber\x12\x1c\n" +
+	"\n" +
+	"id_image_a\x18\x06 \x01(\tR\bidImageA\x12\x1c\n" +
+	"\n" +
+	"id_image_b\x18\a \x01(\tR\bidImageB\x12&\n" +
+	"\x0flicense_image_a\x18\b \x01(\tR\rlicenseImageA\x12&\n" +
+	"\x0flicense_image_b\x18\t \x01(\tR\rlicenseImageB\x12#\n" +
+	"\rdistinct_code\x18\n" +
+	" \x01(\tR\fdistinctCode\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\v \x01(\x03R\tupdatedAt\"\xa2\x01\n" +
+	"\x1fInternalListPendingDriversReply\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\x03R\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x14\n" +
+	"\x05total\x18\x03 \x01(\x03R\x05total\x12;\n" +
+	"\adrivers\x18\x04 \x03(\v2!.api.driver.InternalPendingDriverR\adrivers\"\x8f\x01\n" +
+	"!InternalAuditDriverProfileRequest\x12\x1b\n" +
+	"\tdriver_id\x18\x01 \x01(\x04R\bdriverId\x12\x19\n" +
+	"\badmin_id\x18\x02 \x01(\x04R\aadminId\x12\x1a\n" +
+	"\bapproved\x18\x03 \x01(\bR\bapproved\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\"g\n" +
+	"\x1fInternalAuditDriverProfileReply\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\x03R\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\"1\n" +
 	"\x17UpdateWorkStatusRequest\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\"]\n" +
 	"\x15UpdateWorkStatusReply\x12\x12\n" +
@@ -728,77 +1137,89 @@ const file_driver_driver_proto_rawDesc = "" +
 	"\vverify_code\x18\x03 \x01(\tR\n" +
 	"verifyCode\x12(\n" +
 	"\x10verify_code_time\x18\x04 \x01(\x03R\x0everifyCodeTime\x12&\n" +
-	"\x0fverify_code_ttl\x18\x05 \x01(\x05R\rverifyCodeTtl2\xb4\x04\n" +
+	"\x0fverify_code_ttl\x18\x05 \x01(\x05R\rverifyCodeTtl2\xa8\x06\n" +
 	"\x06Driver\x12~\n" +
 	"\rGetVerifyCode\x12 .api.driver.GetVerifyCodeRequest\x1a\x1e.api.driver.GetVerifyCodeReply\"+\x82\xd3\xe4\x93\x02%\x12#/driver/get-verify-code/{telephone}\x12^\n" +
 	"\bRegister\x12\x1b.api.driver.RegisterRequest\x1a\x19.api.driver.RegisterReply\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0fdriver/register\x12R\n" +
 	"\x05Login\x12\x18.api.driver.LoginRequest\x1a\x16.api.driver.LoginReply\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\fdriver/login\x12\x7f\n" +
 	"\x13UpdateDriverProfile\x12&.api.driver.UpdateDriverProfileRequest\x1a$.api.driver.UpdateDriverProfileReply\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/driver/profile\x12u\n" +
-	"\x10UpdateWorkStatus\x12#.api.driver.UpdateWorkStatusRequest\x1a!.api.driver.UpdateWorkStatusReply\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/driver/statusB\x1aZ\x18driver/api/driver;driverb\x06proto3"
+	"\x10UpdateWorkStatus\x12#.api.driver.UpdateWorkStatusRequest\x1a!.api.driver.UpdateWorkStatusReply\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/driver/status\x12x\n" +
+	"\x1aInternalAuditDriverProfile\x12-.api.driver.InternalAuditDriverProfileRequest\x1a+.api.driver.InternalAuditDriverProfileReply\x12x\n" +
+	"\x1aInternalListPendingDrivers\x12-.api.driver.InternalListPendingDriversRequest\x1a+.api.driver.InternalListPendingDriversReplyB\x1aZ\x18driver/api/driver;driverb\x06proto3"
 
 var (
-	file_driver_driver_proto_rawDescOnce sync.Once
-	file_driver_driver_proto_rawDescData []byte
+	file_api_driver_driver_proto_rawDescOnce sync.Once
+	file_api_driver_driver_proto_rawDescData []byte
 )
 
-func file_driver_driver_proto_rawDescGZIP() []byte {
-	file_driver_driver_proto_rawDescOnce.Do(func() {
-		file_driver_driver_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_driver_driver_proto_rawDesc), len(file_driver_driver_proto_rawDesc)))
+func file_api_driver_driver_proto_rawDescGZIP() []byte {
+	file_api_driver_driver_proto_rawDescOnce.Do(func() {
+		file_api_driver_driver_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_driver_driver_proto_rawDesc), len(file_api_driver_driver_proto_rawDesc)))
 	})
-	return file_driver_driver_proto_rawDescData
+	return file_api_driver_driver_proto_rawDescData
 }
 
-var file_driver_driver_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
-var file_driver_driver_proto_goTypes = []any{
-	(*UpdateWorkStatusRequest)(nil),    // 0: api.driver.UpdateWorkStatusRequest
-	(*UpdateWorkStatusReply)(nil),      // 1: api.driver.UpdateWorkStatusReply
-	(*UpdateDriverProfileRequest)(nil), // 2: api.driver.UpdateDriverProfileRequest
-	(*UpdateDriverProfileReply)(nil),   // 3: api.driver.UpdateDriverProfileReply
-	(*LoginRequest)(nil),               // 4: api.driver.LoginRequest
-	(*LoginReply)(nil),                 // 5: api.driver.LoginReply
-	(*RegisterRequest)(nil),            // 6: api.driver.RegisterRequest
-	(*RegisterReply)(nil),              // 7: api.driver.RegisterReply
-	(*GetVerifyCodeRequest)(nil),       // 8: api.driver.GetVerifyCodeRequest
-	(*GetVerifyCodeReply)(nil),         // 9: api.driver.GetVerifyCodeReply
+var file_api_driver_driver_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_api_driver_driver_proto_goTypes = []any{
+	(*InternalListPendingDriversRequest)(nil), // 0: api.driver.InternalListPendingDriversRequest
+	(*InternalPendingDriver)(nil),             // 1: api.driver.InternalPendingDriver
+	(*InternalListPendingDriversReply)(nil),   // 2: api.driver.InternalListPendingDriversReply
+	(*InternalAuditDriverProfileRequest)(nil), // 3: api.driver.InternalAuditDriverProfileRequest
+	(*InternalAuditDriverProfileReply)(nil),   // 4: api.driver.InternalAuditDriverProfileReply
+	(*UpdateWorkStatusRequest)(nil),           // 5: api.driver.UpdateWorkStatusRequest
+	(*UpdateWorkStatusReply)(nil),             // 6: api.driver.UpdateWorkStatusReply
+	(*UpdateDriverProfileRequest)(nil),        // 7: api.driver.UpdateDriverProfileRequest
+	(*UpdateDriverProfileReply)(nil),          // 8: api.driver.UpdateDriverProfileReply
+	(*LoginRequest)(nil),                      // 9: api.driver.LoginRequest
+	(*LoginReply)(nil),                        // 10: api.driver.LoginReply
+	(*RegisterRequest)(nil),                   // 11: api.driver.RegisterRequest
+	(*RegisterReply)(nil),                     // 12: api.driver.RegisterReply
+	(*GetVerifyCodeRequest)(nil),              // 13: api.driver.GetVerifyCodeRequest
+	(*GetVerifyCodeReply)(nil),                // 14: api.driver.GetVerifyCodeReply
 }
-var file_driver_driver_proto_depIdxs = []int32{
-	8, // 0: api.driver.Driver.GetVerifyCode:input_type -> api.driver.GetVerifyCodeRequest
-	6, // 1: api.driver.Driver.Register:input_type -> api.driver.RegisterRequest
-	4, // 2: api.driver.Driver.Login:input_type -> api.driver.LoginRequest
-	2, // 3: api.driver.Driver.UpdateDriverProfile:input_type -> api.driver.UpdateDriverProfileRequest
-	0, // 4: api.driver.Driver.UpdateWorkStatus:input_type -> api.driver.UpdateWorkStatusRequest
-	9, // 5: api.driver.Driver.GetVerifyCode:output_type -> api.driver.GetVerifyCodeReply
-	7, // 6: api.driver.Driver.Register:output_type -> api.driver.RegisterReply
-	5, // 7: api.driver.Driver.Login:output_type -> api.driver.LoginReply
-	3, // 8: api.driver.Driver.UpdateDriverProfile:output_type -> api.driver.UpdateDriverProfileReply
-	1, // 9: api.driver.Driver.UpdateWorkStatus:output_type -> api.driver.UpdateWorkStatusReply
-	5, // [5:10] is the sub-list for method output_type
-	0, // [0:5] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+var file_api_driver_driver_proto_depIdxs = []int32{
+	1,  // 0: api.driver.InternalListPendingDriversReply.drivers:type_name -> api.driver.InternalPendingDriver
+	13, // 1: api.driver.Driver.GetVerifyCode:input_type -> api.driver.GetVerifyCodeRequest
+	11, // 2: api.driver.Driver.Register:input_type -> api.driver.RegisterRequest
+	9,  // 3: api.driver.Driver.Login:input_type -> api.driver.LoginRequest
+	7,  // 4: api.driver.Driver.UpdateDriverProfile:input_type -> api.driver.UpdateDriverProfileRequest
+	5,  // 5: api.driver.Driver.UpdateWorkStatus:input_type -> api.driver.UpdateWorkStatusRequest
+	3,  // 6: api.driver.Driver.InternalAuditDriverProfile:input_type -> api.driver.InternalAuditDriverProfileRequest
+	0,  // 7: api.driver.Driver.InternalListPendingDrivers:input_type -> api.driver.InternalListPendingDriversRequest
+	14, // 8: api.driver.Driver.GetVerifyCode:output_type -> api.driver.GetVerifyCodeReply
+	12, // 9: api.driver.Driver.Register:output_type -> api.driver.RegisterReply
+	10, // 10: api.driver.Driver.Login:output_type -> api.driver.LoginReply
+	8,  // 11: api.driver.Driver.UpdateDriverProfile:output_type -> api.driver.UpdateDriverProfileReply
+	6,  // 12: api.driver.Driver.UpdateWorkStatus:output_type -> api.driver.UpdateWorkStatusReply
+	4,  // 13: api.driver.Driver.InternalAuditDriverProfile:output_type -> api.driver.InternalAuditDriverProfileReply
+	2,  // 14: api.driver.Driver.InternalListPendingDrivers:output_type -> api.driver.InternalListPendingDriversReply
+	8,  // [8:15] is the sub-list for method output_type
+	1,  // [1:8] is the sub-list for method input_type
+	1,  // [1:1] is the sub-list for extension type_name
+	1,  // [1:1] is the sub-list for extension extendee
+	0,  // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_driver_driver_proto_init() }
-func file_driver_driver_proto_init() {
-	if File_driver_driver_proto != nil {
+func init() { file_api_driver_driver_proto_init() }
+func file_api_driver_driver_proto_init() {
+	if File_api_driver_driver_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_driver_driver_proto_rawDesc), len(file_driver_driver_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_driver_driver_proto_rawDesc), len(file_api_driver_driver_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_driver_driver_proto_goTypes,
-		DependencyIndexes: file_driver_driver_proto_depIdxs,
-		MessageInfos:      file_driver_driver_proto_msgTypes,
+		GoTypes:           file_api_driver_driver_proto_goTypes,
+		DependencyIndexes: file_api_driver_driver_proto_depIdxs,
+		MessageInfos:      file_api_driver_driver_proto_msgTypes,
 	}.Build()
-	File_driver_driver_proto = out.File
-	file_driver_driver_proto_goTypes = nil
-	file_driver_driver_proto_depIdxs = nil
+	File_api_driver_driver_proto = out.File
+	file_api_driver_driver_proto_goTypes = nil
+	file_api_driver_driver_proto_depIdxs = nil
 }

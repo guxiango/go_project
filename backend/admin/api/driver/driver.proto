@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package api.driver;
+
+option go_package = "admin/api/driver;driver";
+
+service Driver {
+  rpc InternalAuditDriverProfile(InternalAuditDriverProfileRequest) returns (InternalAuditDriverProfileReply);
+  rpc InternalListPendingDrivers(InternalListPendingDriversRequest) returns (InternalListPendingDriversReply);
+}
+
+message InternalAuditDriverProfileRequest {
+  uint64 driver_id = 1;
+  uint64 admin_id = 2;
+  bool approved = 3;
+  string reason = 4;
+}
+
+message InternalAuditDriverProfileReply {
+  int64 code = 1;
+  string message = 2;
+  string status = 3;
+}
+
+message InternalListPendingDriversRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message InternalPendingDriver {
+  uint64 driver_id = 1;
+  string name = 2;
+  string telephone = 3;
+  string status = 4;
+  string id_number = 5;
+  string id_image_a = 6;
+  string id_image_b = 7;
+  string license_image_a = 8;
+  string license_image_b = 9;
+  string distinct_code = 10;
+  int64 updated_at = 11;
+}
+
+message InternalListPendingDriversReply {
+  int64 code = 1;
+  string message = 2;
+  int64 total = 3;
+  repeated InternalPendingDriver drivers = 4;
+}

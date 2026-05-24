@@ -18,6 +18,7 @@ service:
     addr: localhost:8500
   trace:
     otlp_endpoint: 127.0.0.1:4317
+  internal_token: laomadj_internal_token
 security:
   jwt:
     secret: laomadj_driver_secret

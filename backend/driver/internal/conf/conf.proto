@@ -45,6 +45,7 @@ message Service {
   }
   Consul consul = 1;
   Trace trace = 2;
+  string internal_token = 3;
 }
 
 message Data {

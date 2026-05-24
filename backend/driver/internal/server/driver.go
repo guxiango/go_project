@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/subtle"
 	"driver/internal/biz"
 	"driver/internal/service"
 	"strings"
@@ -46,6 +47,25 @@ func driverJWT(driverService *service.DriverService) middleware.Middleware {
 				return nil, kerrors.Unauthorized("UNAUTHORIZED", "授权已过期，请重新登录")
 			}
 
+			return handler(ctx, req)
+		}
+	}
+}
+
+func internalToken(expectedToken string) middleware.Middleware {
+	return func(handler middleware.Handler) middleware.Handler {
+		return func(ctx context.Context, req interface{}) (interface{}, error) {
+			if expectedToken == "" {
+				return nil, kerrors.InternalServer("INTERNAL_TOKEN_MISSING", "internal token is not configured")
+			}
+			header, ok := transport.FromServerContext(ctx)
+			if !ok {
+				return nil, kerrors.Unauthorized("UNAUTHORIZED", "请求上下文错误")
+			}
+			actualToken := header.RequestHeader().Get("x-internal-token")
+			if actualToken == "" || subtle.ConstantTimeCompare([]byte(actualToken), []byte(expectedToken)) != 1 {
+				return nil, kerrors.Unauthorized("UNAUTHORIZED", "内部服务认证失败")
+			}
 			return handler(ctx, req)
 		}
 	}

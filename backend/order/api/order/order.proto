@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package api.order;
+
+option go_package = "order/api/order;order";
+option java_multiple_files = true;
+option java_package = "api.order";
+
+service Order {
+  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderReply);
+}
+
+// 订单相关信息
+message OrderInfo {
+  uint64 order_id = 1;
+  string order_no = 2;
+
+  uint64 customer_id = 3;
+  uint64 driver_id = 4;
+
+  string origin = 5;
+  string destination = 6;
+
+  int64 distance = 7;        // 米
+  int64 duration = 8;        // 秒
+  int64 estimate_price = 9;  // 分
+
+  string status = 10;
+
+  int64 created_at = 11;
+  int64 accepted_at = 12;
+  int64 started_at = 13;
+  int64 finished_at = 14;
+  int64 cancelled_at = 15;
+}
+
+// 创建订单的请求
+message CreateOrderRequest {
+  uint64 customer_id = 1;
+
+  string origin = 2;
+  string destination = 3;
+
+  int64 distance = 4;        // 可选：如果由 order 调 map/valuation，可不传
+  int64 duration = 5;        // 可选
+  int64 estimate_price = 6;  // 可选
+
+  string remark = 7;
+}
+
+// 创建订单的回复
+message CreateOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}

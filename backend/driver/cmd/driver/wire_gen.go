@@ -49,7 +49,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confService *conf.Ser
 		return nil, nil, err
 	}
 	driverService := service.NewDriverService(driverData, driverBiz, confSecurity)
-	grpcServer := server.NewGRPCServer(confServer, greeterService, driverService, logger)
+	grpcServer := server.NewGRPCServer(confServer, confService, greeterService, driverService, logger)
 	httpServer := server.NewHTTPServer(confServer, greeterService, confSecurity, driverService, logger)
 	app := newApp(logger, grpcServer, httpServer, consulRegistry)
 	return app, func() {

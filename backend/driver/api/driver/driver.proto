@@ -45,6 +45,52 @@ service Driver {
     };
   }
 
+  // 管理员审核司机的信息
+  rpc InternalAuditDriverProfile (InternalAuditDriverProfileRequest) returns (InternalAuditDriverProfileReply);
+  // 获取需要验证的司机的信息
+  rpc InternalListPendingDrivers(InternalListPendingDriversRequest) returns (InternalListPendingDriversReply);
+}
+
+// 获取司机信息的请求
+message InternalListPendingDriversRequest {
+	int32 page = 1;
+	int32 page_size = 2;
+}
+
+message InternalPendingDriver {
+	uint64 driver_id = 1;             // 司机id
+	string name = 2;                  // 司机名字
+	string telephone = 3;             // 手机号
+	string status = 4;                // 当前状态
+	string id_number = 5;             // 身份证号
+	string id_image_a = 6;            // 省份证正反面
+	string id_image_b = 7;
+	string license_image_a = 8;       // 驾驶证正反面
+	string license_image_b = 9;
+	string distinct_code = 10;
+	int64 updated_at = 11;            // 信息的更新时间
+}
+
+// 获取司机信息的回复
+message InternalListPendingDriversReply {
+	int64 code = 1;
+	string message = 2;
+	int64 total = 3;
+	repeated InternalPendingDriver drivers = 4;
+}
+
+// 管理员审核的请求
+message InternalAuditDriverProfileRequest {
+	uint64 driver_id = 1;
+	uint64 admin_id = 2;
+	bool approved = 3;
+	string reason = 4;
+}
+// 管理员审核的回复
+message InternalAuditDriverProfileReply {
+	int64 code = 1;
+  	string message = 2;
+  	string status = 3;
 }
 
 // 修改司机状态的请求

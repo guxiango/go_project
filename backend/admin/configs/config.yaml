@@ -1,0 +1,29 @@
+server:
+  http:
+    addr: 0.0.0.0:10500
+    timeout: 1s
+  grpc:
+    addr: 0.0.0.0:11500
+    timeout: 1s
+data:
+  database:
+    driver: mysql
+    source: root:Mysql@123456@tcp(127.0.0.1:3306)/laomadj_admin?parseTime=True&loc=Local
+  redis:
+    addr: 127.0.0.1:6379
+    read_timeout: 0.2s
+    write_timeout: 0.2s
+service:
+  consul:
+    addr: localhost:8500
+  driver:
+    endpoint: discovery:///Driver
+    internal_token: laomadj_internal_token
+security:
+  jwt:
+    secret: laomadj_admin_secret
+    ttl_seconds: 7200
+  seed_admin:
+    username: admin
+    password: admin123
+    role: super_admin
