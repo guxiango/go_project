@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.29.3
-// source: api/driver/driver.proto
+// source: driver/driver.proto
 
 package driver
 
@@ -24,6 +24,13 @@ const (
 	Driver_Login_FullMethodName                      = "/api.driver.Driver/Login"
 	Driver_UpdateDriverProfile_FullMethodName        = "/api.driver.Driver/UpdateDriverProfile"
 	Driver_UpdateWorkStatus_FullMethodName           = "/api.driver.Driver/UpdateWorkStatus"
+	Driver_AcceptOrder_FullMethodName                = "/api.driver.Driver/AcceptOrder"
+	Driver_StartOrder_FullMethodName                 = "/api.driver.Driver/StartOrder"
+	Driver_FinishOrder_FullMethodName                = "/api.driver.Driver/FinishOrder"
+	Driver_CancelOrder_FullMethodName                = "/api.driver.Driver/CancelOrder"
+	Driver_GetOrder_FullMethodName                   = "/api.driver.Driver/GetOrder"
+	Driver_ListPendingOrders_FullMethodName          = "/api.driver.Driver/ListPendingOrders"
+	Driver_ListDriverOrders_FullMethodName           = "/api.driver.Driver/ListDriverOrders"
 	Driver_InternalAuditDriverProfile_FullMethodName = "/api.driver.Driver/InternalAuditDriverProfile"
 	Driver_InternalListPendingDrivers_FullMethodName = "/api.driver.Driver/InternalListPendingDrivers"
 )
@@ -32,19 +39,33 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DriverClient interface {
-	// 获取验证码
+	// GetVerifyCode returns a login/register verification code.
 	GetVerifyCode(ctx context.Context, in *GetVerifyCodeRequest, opts ...grpc.CallOption) (*GetVerifyCodeReply, error)
-	// 注册
+	// Register creates a driver account.
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterReply, error)
-	// 登录
+	// Login authenticates a driver.
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginReply, error)
-	// 更新司机资料
+	// UpdateDriverProfile updates the current driver's profile.
 	UpdateDriverProfile(ctx context.Context, in *UpdateDriverProfileRequest, opts ...grpc.CallOption) (*UpdateDriverProfileReply, error)
-	// 修改司机的状态
+	// UpdateWorkStatus updates the current driver's work status.
 	UpdateWorkStatus(ctx context.Context, in *UpdateWorkStatusRequest, opts ...grpc.CallOption) (*UpdateWorkStatusReply, error)
-	// 管理员审核司机的信息
+	// AcceptOrder lets the current driver accept a pending order.
+	AcceptOrder(ctx context.Context, in *AcceptOrderRequest, opts ...grpc.CallOption) (*AcceptOrderReply, error)
+	// StartOrder lets the current driver start an accepted order.
+	StartOrder(ctx context.Context, in *StartOrderRequest, opts ...grpc.CallOption) (*StartOrderReply, error)
+	// FinishOrder lets the current driver finish a started order.
+	FinishOrder(ctx context.Context, in *FinishOrderRequest, opts ...grpc.CallOption) (*FinishOrderReply, error)
+	// CancelOrder lets the current driver cancel an accepted order.
+	CancelOrder(ctx context.Context, in *CancelOrderRequest, opts ...grpc.CallOption) (*CancelOrderReply, error)
+	// GetOrder returns one order visible to the current driver.
+	GetOrder(ctx context.Context, in *GetOrderRequest, opts ...grpc.CallOption) (*GetOrderReply, error)
+	// ListPendingOrders returns pending orders available for drivers.
+	ListPendingOrders(ctx context.Context, in *ListPendingOrdersRequest, opts ...grpc.CallOption) (*ListPendingOrdersReply, error)
+	// ListDriverOrders returns orders assigned to the current driver.
+	ListDriverOrders(ctx context.Context, in *ListDriverOrdersRequest, opts ...grpc.CallOption) (*ListDriverOrdersReply, error)
+	// InternalAuditDriverProfile lets admins audit driver profile submissions.
 	InternalAuditDriverProfile(ctx context.Context, in *InternalAuditDriverProfileRequest, opts ...grpc.CallOption) (*InternalAuditDriverProfileReply, error)
-	// 获取需要验证的司机的信息
+	// InternalListPendingDrivers returns drivers waiting for profile review.
 	InternalListPendingDrivers(ctx context.Context, in *InternalListPendingDriversRequest, opts ...grpc.CallOption) (*InternalListPendingDriversReply, error)
 }
 
@@ -106,6 +127,76 @@ func (c *driverClient) UpdateWorkStatus(ctx context.Context, in *UpdateWorkStatu
 	return out, nil
 }
 
+func (c *driverClient) AcceptOrder(ctx context.Context, in *AcceptOrderRequest, opts ...grpc.CallOption) (*AcceptOrderReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AcceptOrderReply)
+	err := c.cc.Invoke(ctx, Driver_AcceptOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *driverClient) StartOrder(ctx context.Context, in *StartOrderRequest, opts ...grpc.CallOption) (*StartOrderReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartOrderReply)
+	err := c.cc.Invoke(ctx, Driver_StartOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *driverClient) FinishOrder(ctx context.Context, in *FinishOrderRequest, opts ...grpc.CallOption) (*FinishOrderReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FinishOrderReply)
+	err := c.cc.Invoke(ctx, Driver_FinishOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *driverClient) CancelOrder(ctx context.Context, in *CancelOrderRequest, opts ...grpc.CallOption) (*CancelOrderReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelOrderReply)
+	err := c.cc.Invoke(ctx, Driver_CancelOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *driverClient) GetOrder(ctx context.Context, in *GetOrderRequest, opts ...grpc.CallOption) (*GetOrderReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetOrderReply)
+	err := c.cc.Invoke(ctx, Driver_GetOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *driverClient) ListPendingOrders(ctx context.Context, in *ListPendingOrdersRequest, opts ...grpc.CallOption) (*ListPendingOrdersReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPendingOrdersReply)
+	err := c.cc.Invoke(ctx, Driver_ListPendingOrders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *driverClient) ListDriverOrders(ctx context.Context, in *ListDriverOrdersRequest, opts ...grpc.CallOption) (*ListDriverOrdersReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListDriverOrdersReply)
+	err := c.cc.Invoke(ctx, Driver_ListDriverOrders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *driverClient) InternalAuditDriverProfile(ctx context.Context, in *InternalAuditDriverProfileRequest, opts ...grpc.CallOption) (*InternalAuditDriverProfileReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(InternalAuditDriverProfileReply)
@@ -130,19 +221,33 @@ func (c *driverClient) InternalListPendingDrivers(ctx context.Context, in *Inter
 // All implementations must embed UnimplementedDriverServer
 // for forward compatibility.
 type DriverServer interface {
-	// 获取验证码
+	// GetVerifyCode returns a login/register verification code.
 	GetVerifyCode(context.Context, *GetVerifyCodeRequest) (*GetVerifyCodeReply, error)
-	// 注册
+	// Register creates a driver account.
 	Register(context.Context, *RegisterRequest) (*RegisterReply, error)
-	// 登录
+	// Login authenticates a driver.
 	Login(context.Context, *LoginRequest) (*LoginReply, error)
-	// 更新司机资料
+	// UpdateDriverProfile updates the current driver's profile.
 	UpdateDriverProfile(context.Context, *UpdateDriverProfileRequest) (*UpdateDriverProfileReply, error)
-	// 修改司机的状态
+	// UpdateWorkStatus updates the current driver's work status.
 	UpdateWorkStatus(context.Context, *UpdateWorkStatusRequest) (*UpdateWorkStatusReply, error)
-	// 管理员审核司机的信息
+	// AcceptOrder lets the current driver accept a pending order.
+	AcceptOrder(context.Context, *AcceptOrderRequest) (*AcceptOrderReply, error)
+	// StartOrder lets the current driver start an accepted order.
+	StartOrder(context.Context, *StartOrderRequest) (*StartOrderReply, error)
+	// FinishOrder lets the current driver finish a started order.
+	FinishOrder(context.Context, *FinishOrderRequest) (*FinishOrderReply, error)
+	// CancelOrder lets the current driver cancel an accepted order.
+	CancelOrder(context.Context, *CancelOrderRequest) (*CancelOrderReply, error)
+	// GetOrder returns one order visible to the current driver.
+	GetOrder(context.Context, *GetOrderRequest) (*GetOrderReply, error)
+	// ListPendingOrders returns pending orders available for drivers.
+	ListPendingOrders(context.Context, *ListPendingOrdersRequest) (*ListPendingOrdersReply, error)
+	// ListDriverOrders returns orders assigned to the current driver.
+	ListDriverOrders(context.Context, *ListDriverOrdersRequest) (*ListDriverOrdersReply, error)
+	// InternalAuditDriverProfile lets admins audit driver profile submissions.
 	InternalAuditDriverProfile(context.Context, *InternalAuditDriverProfileRequest) (*InternalAuditDriverProfileReply, error)
-	// 获取需要验证的司机的信息
+	// InternalListPendingDrivers returns drivers waiting for profile review.
 	InternalListPendingDrivers(context.Context, *InternalListPendingDriversRequest) (*InternalListPendingDriversReply, error)
 	mustEmbedUnimplementedDriverServer()
 }
@@ -168,6 +273,27 @@ func (UnimplementedDriverServer) UpdateDriverProfile(context.Context, *UpdateDri
 }
 func (UnimplementedDriverServer) UpdateWorkStatus(context.Context, *UpdateWorkStatusRequest) (*UpdateWorkStatusReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateWorkStatus not implemented")
+}
+func (UnimplementedDriverServer) AcceptOrder(context.Context, *AcceptOrderRequest) (*AcceptOrderReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method AcceptOrder not implemented")
+}
+func (UnimplementedDriverServer) StartOrder(context.Context, *StartOrderRequest) (*StartOrderReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartOrder not implemented")
+}
+func (UnimplementedDriverServer) FinishOrder(context.Context, *FinishOrderRequest) (*FinishOrderReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method FinishOrder not implemented")
+}
+func (UnimplementedDriverServer) CancelOrder(context.Context, *CancelOrderRequest) (*CancelOrderReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelOrder not implemented")
+}
+func (UnimplementedDriverServer) GetOrder(context.Context, *GetOrderRequest) (*GetOrderReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetOrder not implemented")
+}
+func (UnimplementedDriverServer) ListPendingOrders(context.Context, *ListPendingOrdersRequest) (*ListPendingOrdersReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPendingOrders not implemented")
+}
+func (UnimplementedDriverServer) ListDriverOrders(context.Context, *ListDriverOrdersRequest) (*ListDriverOrdersReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListDriverOrders not implemented")
 }
 func (UnimplementedDriverServer) InternalAuditDriverProfile(context.Context, *InternalAuditDriverProfileRequest) (*InternalAuditDriverProfileReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method InternalAuditDriverProfile not implemented")
@@ -286,6 +412,132 @@ func _Driver_UpdateWorkStatus_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Driver_AcceptOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AcceptOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DriverServer).AcceptOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Driver_AcceptOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DriverServer).AcceptOrder(ctx, req.(*AcceptOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Driver_StartOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DriverServer).StartOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Driver_StartOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DriverServer).StartOrder(ctx, req.(*StartOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Driver_FinishOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FinishOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DriverServer).FinishOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Driver_FinishOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DriverServer).FinishOrder(ctx, req.(*FinishOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Driver_CancelOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DriverServer).CancelOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Driver_CancelOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DriverServer).CancelOrder(ctx, req.(*CancelOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Driver_GetOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DriverServer).GetOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Driver_GetOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DriverServer).GetOrder(ctx, req.(*GetOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Driver_ListPendingOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPendingOrdersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DriverServer).ListPendingOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Driver_ListPendingOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DriverServer).ListPendingOrders(ctx, req.(*ListPendingOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Driver_ListDriverOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDriverOrdersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DriverServer).ListDriverOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Driver_ListDriverOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DriverServer).ListDriverOrders(ctx, req.(*ListDriverOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Driver_InternalAuditDriverProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(InternalAuditDriverProfileRequest)
 	if err := dec(in); err != nil {
@@ -350,6 +602,34 @@ var Driver_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Driver_UpdateWorkStatus_Handler,
 		},
 		{
+			MethodName: "AcceptOrder",
+			Handler:    _Driver_AcceptOrder_Handler,
+		},
+		{
+			MethodName: "StartOrder",
+			Handler:    _Driver_StartOrder_Handler,
+		},
+		{
+			MethodName: "FinishOrder",
+			Handler:    _Driver_FinishOrder_Handler,
+		},
+		{
+			MethodName: "CancelOrder",
+			Handler:    _Driver_CancelOrder_Handler,
+		},
+		{
+			MethodName: "GetOrder",
+			Handler:    _Driver_GetOrder_Handler,
+		},
+		{
+			MethodName: "ListPendingOrders",
+			Handler:    _Driver_ListPendingOrders_Handler,
+		},
+		{
+			MethodName: "ListDriverOrders",
+			Handler:    _Driver_ListDriverOrders_Handler,
+		},
+		{
 			MethodName: "InternalAuditDriverProfile",
 			Handler:    _Driver_InternalAuditDriverProfile_Handler,
 		},
@@ -359,5 +639,5 @@ var Driver_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/driver/driver.proto",
+	Metadata: "driver/driver.proto",
 }

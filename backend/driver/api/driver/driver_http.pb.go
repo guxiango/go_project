@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.9.2
 // - protoc             v5.29.3
-// source: api/driver/driver.proto
+// source: driver/driver.proto
 
 package driver
 
@@ -19,22 +19,43 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationDriverAcceptOrder = "/api.driver.Driver/AcceptOrder"
+const OperationDriverCancelOrder = "/api.driver.Driver/CancelOrder"
+const OperationDriverFinishOrder = "/api.driver.Driver/FinishOrder"
+const OperationDriverGetOrder = "/api.driver.Driver/GetOrder"
 const OperationDriverGetVerifyCode = "/api.driver.Driver/GetVerifyCode"
+const OperationDriverListDriverOrders = "/api.driver.Driver/ListDriverOrders"
+const OperationDriverListPendingOrders = "/api.driver.Driver/ListPendingOrders"
 const OperationDriverLogin = "/api.driver.Driver/Login"
 const OperationDriverRegister = "/api.driver.Driver/Register"
+const OperationDriverStartOrder = "/api.driver.Driver/StartOrder"
 const OperationDriverUpdateDriverProfile = "/api.driver.Driver/UpdateDriverProfile"
 const OperationDriverUpdateWorkStatus = "/api.driver.Driver/UpdateWorkStatus"
 
 type DriverHTTPServer interface {
-	// GetVerifyCode 获取验证码
+	// AcceptOrder AcceptOrder lets the current driver accept a pending order.
+	AcceptOrder(context.Context, *AcceptOrderRequest) (*AcceptOrderReply, error)
+	// CancelOrder CancelOrder lets the current driver cancel an accepted order.
+	CancelOrder(context.Context, *CancelOrderRequest) (*CancelOrderReply, error)
+	// FinishOrder FinishOrder lets the current driver finish a started order.
+	FinishOrder(context.Context, *FinishOrderRequest) (*FinishOrderReply, error)
+	// GetOrder GetOrder returns one order visible to the current driver.
+	GetOrder(context.Context, *GetOrderRequest) (*GetOrderReply, error)
+	// GetVerifyCode GetVerifyCode returns a login/register verification code.
 	GetVerifyCode(context.Context, *GetVerifyCodeRequest) (*GetVerifyCodeReply, error)
-	// Login 登录
+	// ListDriverOrders ListDriverOrders returns orders assigned to the current driver.
+	ListDriverOrders(context.Context, *ListDriverOrdersRequest) (*ListDriverOrdersReply, error)
+	// ListPendingOrders ListPendingOrders returns pending orders available for drivers.
+	ListPendingOrders(context.Context, *ListPendingOrdersRequest) (*ListPendingOrdersReply, error)
+	// Login Login authenticates a driver.
 	Login(context.Context, *LoginRequest) (*LoginReply, error)
-	// Register 注册
+	// Register Register creates a driver account.
 	Register(context.Context, *RegisterRequest) (*RegisterReply, error)
-	// UpdateDriverProfile 更新司机资料
+	// StartOrder StartOrder lets the current driver start an accepted order.
+	StartOrder(context.Context, *StartOrderRequest) (*StartOrderReply, error)
+	// UpdateDriverProfile UpdateDriverProfile updates the current driver's profile.
 	UpdateDriverProfile(context.Context, *UpdateDriverProfileRequest) (*UpdateDriverProfileReply, error)
-	// UpdateWorkStatus 修改司机的状态
+	// UpdateWorkStatus UpdateWorkStatus updates the current driver's work status.
 	UpdateWorkStatus(context.Context, *UpdateWorkStatusRequest) (*UpdateWorkStatusReply, error)
 }
 
@@ -45,6 +66,13 @@ func RegisterDriverHTTPServer(s *http.Server, srv DriverHTTPServer) {
 	r.POST("driver/login", _Driver_Login0_HTTP_Handler(srv))
 	r.POST("/driver/profile", _Driver_UpdateDriverProfile0_HTTP_Handler(srv))
 	r.POST("/driver/status", _Driver_UpdateWorkStatus0_HTTP_Handler(srv))
+	r.POST("/driver/accept-order", _Driver_AcceptOrder0_HTTP_Handler(srv))
+	r.POST("/driver/start-order", _Driver_StartOrder0_HTTP_Handler(srv))
+	r.POST("/driver/finish-order", _Driver_FinishOrder0_HTTP_Handler(srv))
+	r.POST("/driver/cancel-order", _Driver_CancelOrder0_HTTP_Handler(srv))
+	r.GET("/driver/orders/{order_id}", _Driver_GetOrder0_HTTP_Handler(srv))
+	r.GET("/driver/orders/pending", _Driver_ListPendingOrders0_HTTP_Handler(srv))
+	r.GET("/driver/orders", _Driver_ListDriverOrders0_HTTP_Handler(srv))
 }
 
 func _Driver_GetVerifyCode0_HTTP_Handler(srv DriverHTTPServer) func(ctx http.Context) error {
@@ -157,16 +185,178 @@ func _Driver_UpdateWorkStatus0_HTTP_Handler(srv DriverHTTPServer) func(ctx http.
 	}
 }
 
+func _Driver_AcceptOrder0_HTTP_Handler(srv DriverHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AcceptOrderRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDriverAcceptOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AcceptOrder(ctx, req.(*AcceptOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AcceptOrderReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Driver_StartOrder0_HTTP_Handler(srv DriverHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in StartOrderRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDriverStartOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.StartOrder(ctx, req.(*StartOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*StartOrderReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Driver_FinishOrder0_HTTP_Handler(srv DriverHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in FinishOrderRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDriverFinishOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.FinishOrder(ctx, req.(*FinishOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*FinishOrderReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Driver_CancelOrder0_HTTP_Handler(srv DriverHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CancelOrderRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDriverCancelOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CancelOrder(ctx, req.(*CancelOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CancelOrderReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Driver_GetOrder0_HTTP_Handler(srv DriverHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetOrderRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDriverGetOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetOrder(ctx, req.(*GetOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetOrderReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Driver_ListPendingOrders0_HTTP_Handler(srv DriverHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListPendingOrdersRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDriverListPendingOrders)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListPendingOrders(ctx, req.(*ListPendingOrdersRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListPendingOrdersReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Driver_ListDriverOrders0_HTTP_Handler(srv DriverHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListDriverOrdersRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDriverListDriverOrders)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListDriverOrders(ctx, req.(*ListDriverOrdersRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListDriverOrdersReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type DriverHTTPClient interface {
-	// GetVerifyCode 获取验证码
+	// AcceptOrder AcceptOrder lets the current driver accept a pending order.
+	AcceptOrder(ctx context.Context, req *AcceptOrderRequest, opts ...http.CallOption) (rsp *AcceptOrderReply, err error)
+	// CancelOrder CancelOrder lets the current driver cancel an accepted order.
+	CancelOrder(ctx context.Context, req *CancelOrderRequest, opts ...http.CallOption) (rsp *CancelOrderReply, err error)
+	// FinishOrder FinishOrder lets the current driver finish a started order.
+	FinishOrder(ctx context.Context, req *FinishOrderRequest, opts ...http.CallOption) (rsp *FinishOrderReply, err error)
+	// GetOrder GetOrder returns one order visible to the current driver.
+	GetOrder(ctx context.Context, req *GetOrderRequest, opts ...http.CallOption) (rsp *GetOrderReply, err error)
+	// GetVerifyCode GetVerifyCode returns a login/register verification code.
 	GetVerifyCode(ctx context.Context, req *GetVerifyCodeRequest, opts ...http.CallOption) (rsp *GetVerifyCodeReply, err error)
-	// Login 登录
+	// ListDriverOrders ListDriverOrders returns orders assigned to the current driver.
+	ListDriverOrders(ctx context.Context, req *ListDriverOrdersRequest, opts ...http.CallOption) (rsp *ListDriverOrdersReply, err error)
+	// ListPendingOrders ListPendingOrders returns pending orders available for drivers.
+	ListPendingOrders(ctx context.Context, req *ListPendingOrdersRequest, opts ...http.CallOption) (rsp *ListPendingOrdersReply, err error)
+	// Login Login authenticates a driver.
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginReply, err error)
-	// Register 注册
+	// Register Register creates a driver account.
 	Register(ctx context.Context, req *RegisterRequest, opts ...http.CallOption) (rsp *RegisterReply, err error)
-	// UpdateDriverProfile 更新司机资料
+	// StartOrder StartOrder lets the current driver start an accepted order.
+	StartOrder(ctx context.Context, req *StartOrderRequest, opts ...http.CallOption) (rsp *StartOrderReply, err error)
+	// UpdateDriverProfile UpdateDriverProfile updates the current driver's profile.
 	UpdateDriverProfile(ctx context.Context, req *UpdateDriverProfileRequest, opts ...http.CallOption) (rsp *UpdateDriverProfileReply, err error)
-	// UpdateWorkStatus 修改司机的状态
+	// UpdateWorkStatus UpdateWorkStatus updates the current driver's work status.
 	UpdateWorkStatus(ctx context.Context, req *UpdateWorkStatusRequest, opts ...http.CallOption) (rsp *UpdateWorkStatusReply, err error)
 }
 
@@ -178,7 +368,63 @@ func NewDriverHTTPClient(client *http.Client) DriverHTTPClient {
 	return &DriverHTTPClientImpl{client}
 }
 
-// GetVerifyCode 获取验证码
+// AcceptOrder AcceptOrder lets the current driver accept a pending order.
+func (c *DriverHTTPClientImpl) AcceptOrder(ctx context.Context, in *AcceptOrderRequest, opts ...http.CallOption) (*AcceptOrderReply, error) {
+	var out AcceptOrderReply
+	pattern := "/driver/accept-order"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDriverAcceptOrder))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CancelOrder CancelOrder lets the current driver cancel an accepted order.
+func (c *DriverHTTPClientImpl) CancelOrder(ctx context.Context, in *CancelOrderRequest, opts ...http.CallOption) (*CancelOrderReply, error) {
+	var out CancelOrderReply
+	pattern := "/driver/cancel-order"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDriverCancelOrder))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// FinishOrder FinishOrder lets the current driver finish a started order.
+func (c *DriverHTTPClientImpl) FinishOrder(ctx context.Context, in *FinishOrderRequest, opts ...http.CallOption) (*FinishOrderReply, error) {
+	var out FinishOrderReply
+	pattern := "/driver/finish-order"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDriverFinishOrder))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetOrder GetOrder returns one order visible to the current driver.
+func (c *DriverHTTPClientImpl) GetOrder(ctx context.Context, in *GetOrderRequest, opts ...http.CallOption) (*GetOrderReply, error) {
+	var out GetOrderReply
+	pattern := "/driver/orders/{order_id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationDriverGetOrder))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetVerifyCode GetVerifyCode returns a login/register verification code.
 func (c *DriverHTTPClientImpl) GetVerifyCode(ctx context.Context, in *GetVerifyCodeRequest, opts ...http.CallOption) (*GetVerifyCodeReply, error) {
 	var out GetVerifyCodeReply
 	pattern := "/driver/get-verify-code/{telephone}"
@@ -192,7 +438,35 @@ func (c *DriverHTTPClientImpl) GetVerifyCode(ctx context.Context, in *GetVerifyC
 	return &out, nil
 }
 
-// Login 登录
+// ListDriverOrders ListDriverOrders returns orders assigned to the current driver.
+func (c *DriverHTTPClientImpl) ListDriverOrders(ctx context.Context, in *ListDriverOrdersRequest, opts ...http.CallOption) (*ListDriverOrdersReply, error) {
+	var out ListDriverOrdersReply
+	pattern := "/driver/orders"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationDriverListDriverOrders))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListPendingOrders ListPendingOrders returns pending orders available for drivers.
+func (c *DriverHTTPClientImpl) ListPendingOrders(ctx context.Context, in *ListPendingOrdersRequest, opts ...http.CallOption) (*ListPendingOrdersReply, error) {
+	var out ListPendingOrdersReply
+	pattern := "/driver/orders/pending"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationDriverListPendingOrders))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// Login Login authenticates a driver.
 func (c *DriverHTTPClientImpl) Login(ctx context.Context, in *LoginRequest, opts ...http.CallOption) (*LoginReply, error) {
 	var out LoginReply
 	pattern := "driver/login"
@@ -206,7 +480,7 @@ func (c *DriverHTTPClientImpl) Login(ctx context.Context, in *LoginRequest, opts
 	return &out, nil
 }
 
-// Register 注册
+// Register Register creates a driver account.
 func (c *DriverHTTPClientImpl) Register(ctx context.Context, in *RegisterRequest, opts ...http.CallOption) (*RegisterReply, error) {
 	var out RegisterReply
 	pattern := "driver/register"
@@ -220,7 +494,21 @@ func (c *DriverHTTPClientImpl) Register(ctx context.Context, in *RegisterRequest
 	return &out, nil
 }
 
-// UpdateDriverProfile 更新司机资料
+// StartOrder StartOrder lets the current driver start an accepted order.
+func (c *DriverHTTPClientImpl) StartOrder(ctx context.Context, in *StartOrderRequest, opts ...http.CallOption) (*StartOrderReply, error) {
+	var out StartOrderReply
+	pattern := "/driver/start-order"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDriverStartOrder))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateDriverProfile UpdateDriverProfile updates the current driver's profile.
 func (c *DriverHTTPClientImpl) UpdateDriverProfile(ctx context.Context, in *UpdateDriverProfileRequest, opts ...http.CallOption) (*UpdateDriverProfileReply, error) {
 	var out UpdateDriverProfileReply
 	pattern := "/driver/profile"
@@ -234,7 +522,7 @@ func (c *DriverHTTPClientImpl) UpdateDriverProfile(ctx context.Context, in *Upda
 	return &out, nil
 }
 
-// UpdateWorkStatus 修改司机的状态
+// UpdateWorkStatus UpdateWorkStatus updates the current driver's work status.
 func (c *DriverHTTPClientImpl) UpdateWorkStatus(ctx context.Context, in *UpdateWorkStatusRequest, opts ...http.CallOption) (*UpdateWorkStatusReply, error) {
 	var out UpdateWorkStatusReply
 	pattern := "/driver/status"

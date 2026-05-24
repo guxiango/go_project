@@ -68,15 +68,41 @@ func NewCustomerBiz(d *consul.Registry) (*CustomerBiz, func(), error) {
 	return &CustomerBiz{orderClient, verifyCodeClient}, cleanup, nil
 }
 
-func (cb *CustomerBiz) GetEstimatePrice(ctx context.Context, origin, destination string) (int64, error) {
+func (cb *CustomerBiz) GetEstimatePrice(ctx context.Context, origin, destination string) (*order.GetEstimatePriceReply, error) {
 	reply, err := cb.order.GetEstimatePrice(ctx, &order.GetEstimatePriceRequest{
 		Origin:      origin,
 		Destination: destination,
 	})
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return reply.Price, nil
+	return reply, nil
+}
+
+func (cb *CustomerBiz) CreateOrder(ctx context.Context, origin, destination, remark string) (*order.CreateOrderReply, error) {
+	return cb.order.CreateOrder(ctx, &order.CreateOrderRequest{
+		Origin:      origin,
+		Destination: destination,
+		Remark:      remark,
+	})
+}
+
+func (cb *CustomerBiz) GetOrder(ctx context.Context, orderID uint64) (*order.GetOrderReply, error) {
+	return cb.order.GetOrder(ctx, &order.GetOrderRequest{OrderId: orderID})
+}
+
+func (cb *CustomerBiz) ListCustomerOrders(ctx context.Context, page, pageSize int32) (*order.ListCustomerOrdersReply, error) {
+	return cb.order.ListCustomerOrders(ctx, &order.ListCustomerOrdersRequest{
+		Page:     page,
+		PageSize: pageSize,
+	})
+}
+
+func (cb *CustomerBiz) CancelOrder(ctx context.Context, orderID uint64, reason string) (*order.CancelOrderReply, error) {
+	return cb.order.CancelOrder(ctx, &order.CancelOrderRequest{
+		OrderId: orderID,
+		Reason:  reason,
+	})
 }
 
 func (cb *CustomerBiz) GetVerifyCode(ctx context.Context, length uint32, typ verifyCode.TYPE) (*verifyCode.GetVerifyCodeReply, error) {

@@ -6,14 +6,143 @@ info:
     title: Driver API
     version: 0.0.1
 paths:
+    /driver/accept-order:
+        post:
+            tags:
+                - Driver
+            description: AcceptOrder lets the current driver accept a pending order.
+            operationId: Driver_AcceptOrder
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.driver.AcceptOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.driver.AcceptOrderReply'
+    /driver/cancel-order:
+        post:
+            tags:
+                - Driver
+            description: CancelOrder lets the current driver cancel an accepted order.
+            operationId: Driver_CancelOrder
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.driver.CancelOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.driver.CancelOrderReply'
+    /driver/finish-order:
+        post:
+            tags:
+                - Driver
+            description: FinishOrder lets the current driver finish a started order.
+            operationId: Driver_FinishOrder
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.driver.FinishOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.driver.FinishOrderReply'
     /driver/get-verify-code/{telephone}:
         get:
             tags:
                 - Driver
-            description: 获取验证码
+            description: GetVerifyCode returns a login/register verification code.
             operationId: Driver_GetVerifyCode
             parameters:
                 - name: telephone
+                  in: path
+                  description: Phone number.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.driver.GetVerifyCodeReply'
+    /driver/orders:
+        get:
+            tags:
+                - Driver
+            description: ListDriverOrders returns orders assigned to the current driver.
+            operationId: Driver_ListDriverOrders
+            parameters:
+                - name: status
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.driver.ListDriverOrdersReply'
+    /driver/orders/pending:
+        get:
+            tags:
+                - Driver
+            description: ListPendingOrders returns pending orders available for drivers.
+            operationId: Driver_ListPendingOrders
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.driver.ListPendingOrdersReply'
+    /driver/orders/{orderId}:
+        get:
+            tags:
+                - Driver
+            description: GetOrder returns one order visible to the current driver.
+            operationId: Driver_GetOrder
+            parameters:
+                - name: orderId
                   in: path
                   required: true
                   schema:
@@ -24,24 +153,18 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/GetVerifyCodeReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
+                                $ref: '#/components/schemas/api.driver.GetOrderReply'
     /driver/profile:
         post:
             tags:
                 - Driver
-            description: 更新司机资料
+            description: UpdateDriverProfile updates the current driver's profile.
             operationId: Driver_UpdateDriverProfile
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/UpdateDriverProfileRequest'
+                            $ref: '#/components/schemas/api.driver.UpdateDriverProfileRequest'
                 required: true
             responses:
                 "200":
@@ -49,24 +172,37 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/UpdateDriverProfileReply'
-                default:
-                    description: Default error response
+                                $ref: '#/components/schemas/api.driver.UpdateDriverProfileReply'
+    /driver/start-order:
+        post:
+            tags:
+                - Driver
+            description: StartOrder lets the current driver start an accepted order.
+            operationId: Driver_StartOrder
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.driver.StartOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Status'
+                                $ref: '#/components/schemas/api.driver.StartOrderReply'
     /driver/status:
         post:
             tags:
                 - Driver
-            description: 修改司机的状态
+            description: UpdateWorkStatus updates the current driver's work status.
             operationId: Driver_UpdateWorkStatus
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/UpdateWorkStatusRequest'
+                            $ref: '#/components/schemas/api.driver.UpdateWorkStatusRequest'
                 required: true
             responses:
                 "200":
@@ -74,24 +210,18 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/UpdateWorkStatusReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
+                                $ref: '#/components/schemas/api.driver.UpdateWorkStatusReply'
     driver/login:
         post:
             tags:
                 - Driver
-            description: 登录
+            description: Login authenticates a driver.
             operationId: Driver_Login
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/LoginRequest'
+                            $ref: '#/components/schemas/api.driver.LoginRequest'
                 required: true
             responses:
                 "200":
@@ -99,24 +229,18 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/LoginReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
+                                $ref: '#/components/schemas/api.driver.LoginReply'
     driver/register:
         post:
             tags:
                 - Driver
-            description: 注册
+            description: Register creates a driver account.
             operationId: Driver_Register
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/RegisterRequest'
+                            $ref: '#/components/schemas/api.driver.RegisterRequest'
                 required: true
             responses:
                 "200":
@@ -124,39 +248,108 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/RegisterReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
+                                $ref: '#/components/schemas/api.driver.RegisterReply'
 components:
     schemas:
-        GetVerifyCodeReply:
+        api.driver.AcceptOrderReply:
             type: object
             properties:
                 code:
                     type: string
                 message:
                     type: string
-                verifyCode:
-                    type: string
-                verifyCodeTime:
-                    type: string
-                verifyCodeTtl:
-                    type: integer
-                    format: int32
-            description: 获取验证码回复
-        GoogleProtobufAny:
+                order:
+                    $ref: '#/components/schemas/api.driver.OrderInfo'
+        api.driver.AcceptOrderRequest:
             type: object
             properties:
-                '@type':
+                orderId:
                     type: string
-                    description: The type of the serialized message.
-            additionalProperties: true
-            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-        LoginReply:
+        api.driver.CancelOrderReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.driver.OrderInfo'
+        api.driver.CancelOrderRequest:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                reason:
+                    type: string
+        api.driver.FinishOrderReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.driver.OrderInfo'
+        api.driver.FinishOrderRequest:
+            type: object
+            properties:
+                orderId:
+                    type: string
+        api.driver.GetOrderReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.driver.OrderInfo'
+        api.driver.GetVerifyCodeReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                    description: Status code.
+                message:
+                    type: string
+                    description: Result message.
+                verifyCode:
+                    type: string
+                    description: Verification code.
+                verifyCodeTime:
+                    type: string
+                    description: Verification code creation timestamp.
+                verifyCodeTtl:
+                    type: integer
+                    description: Verification code time to live in seconds.
+                    format: int32
+        api.driver.ListDriverOrdersReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                orders:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.driver.OrderInfo'
+                total:
+                    type: string
+        api.driver.ListPendingOrdersReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                orders:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.driver.OrderInfo'
+                total:
+                    type: string
+        api.driver.LoginReply:
             type: object
             properties:
                 code:
@@ -165,25 +358,76 @@ components:
                     type: string
                 token:
                     type: string
+                    description: Login token.
                 tokenCreateAt:
                     type: string
+                    description: Token creation timestamp.
                 tokenTtl:
                     type: integer
+                    description: Token time to live in seconds.
                     format: int32
                 status:
                     type: string
+                    description: Driver status.
                 driverId:
                     type: string
-            description: 登录回复
-        LoginRequest:
+                    description: Driver id.
+        api.driver.LoginRequest:
             type: object
             properties:
                 telephone:
                     type: string
                 verifyCode:
                     type: string
-            description: 登录请求
-        RegisterReply:
+        api.driver.OrderInfo:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                    description: Internal numeric order id.
+                orderNo:
+                    type: string
+                    description: Public order number shown to users and support staff.
+                customerId:
+                    type: string
+                    description: Customer who created the order.
+                driverId:
+                    type: string
+                    description: Driver assigned to the order. It is 0 before a driver accepts.
+                origin:
+                    type: string
+                    description: Pickup location text or address.
+                destination:
+                    type: string
+                    description: Drop-off location text or address.
+                distance:
+                    type: string
+                    description: Estimated route distance returned by map service.
+                duration:
+                    type: string
+                    description: Estimated route duration returned by map service.
+                estimatePrice:
+                    type: string
+                    description: Estimated fare returned by valuation service.
+                status:
+                    type: string
+                    description: 'Current lifecycle status: pending, accepted, started, finished, or cancelled.'
+                createdAt:
+                    type: string
+                    description: Unix timestamp in seconds when the order was created.
+                acceptedAt:
+                    type: string
+                    description: Unix timestamp in seconds when a driver accepted the order. 0 means not accepted yet.
+                startedAt:
+                    type: string
+                    description: Unix timestamp in seconds when the trip started. 0 means not started yet.
+                finishedAt:
+                    type: string
+                    description: Unix timestamp in seconds when the trip finished. 0 means not finished yet.
+                cancelledAt:
+                    type: string
+                    description: Unix timestamp in seconds when the order was cancelled. 0 means not cancelled.
+        api.driver.RegisterReply:
             type: object
             properties:
                 code:
@@ -194,40 +438,38 @@ components:
                     type: string
                 driverId:
                     type: string
-            description: 注册回复
-        RegisterRequest:
+                    description: Driver id.
+        api.driver.RegisterRequest:
             type: object
             properties:
                 telephone:
                     type: string
+                    description: Phone number.
                 verifyCode:
                     type: string
-            description: 注册请求
-        Status:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
-                    format: int32
-                message:
-                    type: string
-                    description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
-                details:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/GoogleProtobufAny'
-                    description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
-            description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
-        UpdateDriverProfileReply:
+                    description: Verification code.
+        api.driver.StartOrderReply:
             type: object
             properties:
                 code:
                     type: string
                 message:
                     type: string
-            description: 更新司机资料回复
-        UpdateDriverProfileRequest:
+                order:
+                    $ref: '#/components/schemas/api.driver.OrderInfo'
+        api.driver.StartOrderRequest:
+            type: object
+            properties:
+                orderId:
+                    type: string
+        api.driver.UpdateDriverProfileReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+        api.driver.UpdateDriverProfileRequest:
             type: object
             properties:
                 name:
@@ -246,8 +488,7 @@ components:
                     type: string
                 telephoneBak:
                     type: string
-            description: 更新司机资料请求
-        UpdateWorkStatusReply:
+        api.driver.UpdateWorkStatusReply:
             type: object
             properties:
                 code:
@@ -256,12 +497,11 @@ components:
                     type: string
                 status:
                     type: string
-            description: 修改司机状态的回复
-        UpdateWorkStatusRequest:
+        api.driver.UpdateWorkStatusRequest:
             type: object
             properties:
                 status:
                     type: string
-            description: 修改司机状态的请求
+                    description: 'Allowed values: online, offline, or busy.'
 tags:
     - name: Driver

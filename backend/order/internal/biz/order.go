@@ -25,6 +25,7 @@ const (
 type OrderStatus string
 
 const (
+	// Pending orders are waiting for a driver to accept.
 	OrderStatusPending   OrderStatus = "pending"
 	OrderStatusAccepted  OrderStatus = "accepted"
 	OrderStatusStarted   OrderStatus = "started"
@@ -46,6 +47,7 @@ type Order struct {
 
 	Status string `gorm:"type:varchar(32);index;not null"`
 
+	// Cancel fields keep both the actor type and actor id for later audit.
 	CancelReason   string        `gorm:"type:varchar(255)"`
 	CancelOperator string        `gorm:"type:varchar(32);index"`
 	CancelBy       sql.NullInt64 `gorm:"index"`
@@ -90,6 +92,7 @@ type EstimateResult struct {
 }
 
 func (ob *OrderBiz) GetEstimatePrice(ctx context.Context, origin, destination string) (*EstimateResult, error) {
+	// Map service owns route metadata, while valuation owns the pricing rule.
 	drivingInfo, err := ob.mapClient.GetDrivingInfo(ctx, &mapService.GetDrivingInfoRequest{
 		Origin:      origin,
 		Destination: destination,
@@ -122,6 +125,7 @@ func (ob *OrderBiz) GetEstimatePrice(ctx context.Context, origin, destination st
 }
 
 func dial(d *consul.Registry, serviceName string) (*grpc.ClientConn, error) {
+	// All downstream calls are resolved from Consul and carry tracing middleware.
 	return kgrpc.DialInsecure(context.Background(),
 		kgrpc.WithDiscovery(d),
 		kgrpc.WithEndpoint("discovery:///"+serviceName),

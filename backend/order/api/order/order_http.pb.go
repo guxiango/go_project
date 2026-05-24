@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.9.2
 // - protoc             v5.29.3
-// source: api/order/order.proto
+// source: order/order.proto
 
 package order
 
@@ -19,20 +19,48 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationOrderAcceptOrder = "/api.order.Order/AcceptOrder"
 const OperationOrderCreateOrder = "/api.order.Order/CreateOrder"
+const OperationOrderFinishOrder = "/api.order.Order/FinishOrder"
 const OperationOrderGetEstimatePrice = "/api.order.Order/GetEstimatePrice"
+const OperationOrderGetOrder = "/api.order.Order/GetOrder"
+const OperationOrderListCustomerOrders = "/api.order.Order/ListCustomerOrders"
+const OperationOrderListDriverOrders = "/api.order.Order/ListDriverOrders"
+const OperationOrderListPendingOrders = "/api.order.Order/ListPendingOrders"
+const OperationOrderStartOrder = "/api.order.Order/StartOrder"
 
 type OrderHTTPServer interface {
-	// CreateOrder 创建订单
+	// AcceptOrder Driver's order-taking function: Upon successfully accepting an order, the order information is returned.
+	AcceptOrder(context.Context, *AcceptOrderRequest) (*AcceptOrderReply, error)
+	// CreateOrder CreateOrder creates a new ride order. Route and price fields are calculated by the order service.
 	CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderReply, error)
-	// GetEstimatePrice 预估价格
+	// FinishOrder Driver finishes a started order.
+	FinishOrder(context.Context, *FinishOrderRequest) (*FinishOrderReply, error)
+	// GetEstimatePrice GetEstimatePrice returns route distance, duration, and estimated fare before creating an order.
 	GetEstimatePrice(context.Context, *GetEstimatePriceRequest) (*GetEstimatePriceReply, error)
+	// GetOrder GetOrder returns a single order by id.
+	GetOrder(context.Context, *GetOrderRequest) (*GetOrderReply, error)
+	// ListCustomerOrders ListCustomerOrders returns paged orders for one customer.
+	ListCustomerOrders(context.Context, *ListCustomerOrdersRequest) (*ListCustomerOrdersReply, error)
+	// ListDriverOrders ListDriverOrders returns paged orders assigned to one driver.
+	ListDriverOrders(context.Context, *ListDriverOrdersRequest) (*ListDriverOrdersReply, error)
+	// ListPendingOrders ListPendingOrders returns paged pending orders for drivers to accept.
+	ListPendingOrders(context.Context, *ListPendingOrdersRequest) (*ListPendingOrdersReply, error)
+	// StartOrder Driver starts an accepted order.
+	StartOrder(context.Context, *StartOrderRequest) (*StartOrderReply, error)
 }
 
 func RegisterOrderHTTPServer(s *http.Server, srv OrderHTTPServer) {
 	r := s.Route("/")
 	r.POST("/orders", _Order_CreateOrder0_HTTP_Handler(srv))
 	r.GET("/orders/estimate-price", _Order_GetEstimatePrice0_HTTP_Handler(srv))
+	r.POST("/orders/{order_id}/accept", _Order_AcceptOrder0_HTTP_Handler(srv))
+	r.POST("/orders/{order_id}/start", _Order_StartOrder0_HTTP_Handler(srv))
+	r.POST("/orders/{order_id}/finish", _Order_FinishOrder0_HTTP_Handler(srv))
+	r.GET("/orders/{order_id}", _Order_GetOrder0_HTTP_Handler(srv))
+	r.GET("/customers/{customer_id}/orders", _Order_ListCustomerOrders0_HTTP_Handler(srv))
+	r.GET("/orders/pending", _Order_ListPendingOrders0_HTTP_Handler(srv))
+	r.GET("/drivers/{driver_id}/orders", _Order_ListDriverOrders0_HTTP_Handler(srv))
 }
 
 func _Order_CreateOrder0_HTTP_Handler(srv OrderHTTPServer) func(ctx http.Context) error {
@@ -76,11 +104,185 @@ func _Order_GetEstimatePrice0_HTTP_Handler(srv OrderHTTPServer) func(ctx http.Co
 	}
 }
 
+func _Order_AcceptOrder0_HTTP_Handler(srv OrderHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AcceptOrderRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderAcceptOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AcceptOrder(ctx, req.(*AcceptOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AcceptOrderReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Order_StartOrder0_HTTP_Handler(srv OrderHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in StartOrderRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderStartOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.StartOrder(ctx, req.(*StartOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*StartOrderReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Order_FinishOrder0_HTTP_Handler(srv OrderHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in FinishOrderRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderFinishOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.FinishOrder(ctx, req.(*FinishOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*FinishOrderReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Order_GetOrder0_HTTP_Handler(srv OrderHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetOrderRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderGetOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetOrder(ctx, req.(*GetOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetOrderReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Order_ListCustomerOrders0_HTTP_Handler(srv OrderHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListCustomerOrdersRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderListCustomerOrders)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListCustomerOrders(ctx, req.(*ListCustomerOrdersRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListCustomerOrdersReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Order_ListPendingOrders0_HTTP_Handler(srv OrderHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListPendingOrdersRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderListPendingOrders)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListPendingOrders(ctx, req.(*ListPendingOrdersRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListPendingOrdersReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Order_ListDriverOrders0_HTTP_Handler(srv OrderHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListDriverOrdersRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderListDriverOrders)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListDriverOrders(ctx, req.(*ListDriverOrdersRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListDriverOrdersReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type OrderHTTPClient interface {
-	// CreateOrder 创建订单
+	// AcceptOrder Driver's order-taking function: Upon successfully accepting an order, the order information is returned.
+	AcceptOrder(ctx context.Context, req *AcceptOrderRequest, opts ...http.CallOption) (rsp *AcceptOrderReply, err error)
+	// CreateOrder CreateOrder creates a new ride order. Route and price fields are calculated by the order service.
 	CreateOrder(ctx context.Context, req *CreateOrderRequest, opts ...http.CallOption) (rsp *CreateOrderReply, err error)
-	// GetEstimatePrice 预估价格
+	// FinishOrder Driver finishes a started order.
+	FinishOrder(ctx context.Context, req *FinishOrderRequest, opts ...http.CallOption) (rsp *FinishOrderReply, err error)
+	// GetEstimatePrice GetEstimatePrice returns route distance, duration, and estimated fare before creating an order.
 	GetEstimatePrice(ctx context.Context, req *GetEstimatePriceRequest, opts ...http.CallOption) (rsp *GetEstimatePriceReply, err error)
+	// GetOrder GetOrder returns a single order by id.
+	GetOrder(ctx context.Context, req *GetOrderRequest, opts ...http.CallOption) (rsp *GetOrderReply, err error)
+	// ListCustomerOrders ListCustomerOrders returns paged orders for one customer.
+	ListCustomerOrders(ctx context.Context, req *ListCustomerOrdersRequest, opts ...http.CallOption) (rsp *ListCustomerOrdersReply, err error)
+	// ListDriverOrders ListDriverOrders returns paged orders assigned to one driver.
+	ListDriverOrders(ctx context.Context, req *ListDriverOrdersRequest, opts ...http.CallOption) (rsp *ListDriverOrdersReply, err error)
+	// ListPendingOrders ListPendingOrders returns paged pending orders for drivers to accept.
+	ListPendingOrders(ctx context.Context, req *ListPendingOrdersRequest, opts ...http.CallOption) (rsp *ListPendingOrdersReply, err error)
+	// StartOrder Driver starts an accepted order.
+	StartOrder(ctx context.Context, req *StartOrderRequest, opts ...http.CallOption) (rsp *StartOrderReply, err error)
 }
 
 type OrderHTTPClientImpl struct {
@@ -91,7 +293,21 @@ func NewOrderHTTPClient(client *http.Client) OrderHTTPClient {
 	return &OrderHTTPClientImpl{client}
 }
 
-// CreateOrder 创建订单
+// AcceptOrder Driver's order-taking function: Upon successfully accepting an order, the order information is returned.
+func (c *OrderHTTPClientImpl) AcceptOrder(ctx context.Context, in *AcceptOrderRequest, opts ...http.CallOption) (*AcceptOrderReply, error) {
+	var out AcceptOrderReply
+	pattern := "/orders/{order_id}/accept"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationOrderAcceptOrder))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CreateOrder CreateOrder creates a new ride order. Route and price fields are calculated by the order service.
 func (c *OrderHTTPClientImpl) CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...http.CallOption) (*CreateOrderReply, error) {
 	var out CreateOrderReply
 	pattern := "/orders"
@@ -105,7 +321,21 @@ func (c *OrderHTTPClientImpl) CreateOrder(ctx context.Context, in *CreateOrderRe
 	return &out, nil
 }
 
-// GetEstimatePrice 预估价格
+// FinishOrder Driver finishes a started order.
+func (c *OrderHTTPClientImpl) FinishOrder(ctx context.Context, in *FinishOrderRequest, opts ...http.CallOption) (*FinishOrderReply, error) {
+	var out FinishOrderReply
+	pattern := "/orders/{order_id}/finish"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationOrderFinishOrder))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetEstimatePrice GetEstimatePrice returns route distance, duration, and estimated fare before creating an order.
 func (c *OrderHTTPClientImpl) GetEstimatePrice(ctx context.Context, in *GetEstimatePriceRequest, opts ...http.CallOption) (*GetEstimatePriceReply, error) {
 	var out GetEstimatePriceReply
 	pattern := "/orders/estimate-price"
@@ -113,6 +343,76 @@ func (c *OrderHTTPClientImpl) GetEstimatePrice(ctx context.Context, in *GetEstim
 	opts = append(opts, http.Operation(OperationOrderGetEstimatePrice))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetOrder GetOrder returns a single order by id.
+func (c *OrderHTTPClientImpl) GetOrder(ctx context.Context, in *GetOrderRequest, opts ...http.CallOption) (*GetOrderReply, error) {
+	var out GetOrderReply
+	pattern := "/orders/{order_id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationOrderGetOrder))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListCustomerOrders ListCustomerOrders returns paged orders for one customer.
+func (c *OrderHTTPClientImpl) ListCustomerOrders(ctx context.Context, in *ListCustomerOrdersRequest, opts ...http.CallOption) (*ListCustomerOrdersReply, error) {
+	var out ListCustomerOrdersReply
+	pattern := "/customers/{customer_id}/orders"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationOrderListCustomerOrders))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListDriverOrders ListDriverOrders returns paged orders assigned to one driver.
+func (c *OrderHTTPClientImpl) ListDriverOrders(ctx context.Context, in *ListDriverOrdersRequest, opts ...http.CallOption) (*ListDriverOrdersReply, error) {
+	var out ListDriverOrdersReply
+	pattern := "/drivers/{driver_id}/orders"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationOrderListDriverOrders))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListPendingOrders ListPendingOrders returns paged pending orders for drivers to accept.
+func (c *OrderHTTPClientImpl) ListPendingOrders(ctx context.Context, in *ListPendingOrdersRequest, opts ...http.CallOption) (*ListPendingOrdersReply, error) {
+	var out ListPendingOrdersReply
+	pattern := "/orders/pending"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationOrderListPendingOrders))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// StartOrder Driver starts an accepted order.
+func (c *OrderHTTPClientImpl) StartOrder(ctx context.Context, in *StartOrderRequest, opts ...http.CallOption) (*StartOrderReply, error) {
+	var out StartOrderReply
+	pattern := "/orders/{order_id}/start"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationOrderStartOrder))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

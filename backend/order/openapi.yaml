@@ -6,17 +6,86 @@ info:
     title: Order API
     version: 0.0.1
 paths:
+    /customers/{customerId}/orders:
+        get:
+            tags:
+                - Order
+            description: ListCustomerOrders returns paged orders for one customer.
+            operationId: Order_ListCustomerOrders
+            parameters:
+                - name: customerId
+                  in: path
+                  description: Customer whose orders will be listed.
+                  required: true
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  description: Page number starting from 1. Non-positive values use the service default.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  description: Number of items per page. The service applies a maximum limit.
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.ListCustomerOrdersReply'
+    /drivers/{driverId}/orders:
+        get:
+            tags:
+                - Order
+            description: ListDriverOrders returns paged orders assigned to one driver.
+            operationId: Order_ListDriverOrders
+            parameters:
+                - name: driverId
+                  in: path
+                  description: Driver whose assigned orders will be listed.
+                  required: true
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  description: Optional lifecycle status filter. Empty means all driver orders.
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  description: Page number starting from 1. Non-positive values use the service default.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  description: Number of items per page. The service applies a maximum limit.
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.ListDriverOrdersReply'
     /orders:
         post:
             tags:
                 - Order
-            description: 创建订单
+            description: CreateOrder creates a new ride order. Route and price fields are calculated by the order service.
             operationId: Order_CreateOrder
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/CreateOrderRequest'
+                            $ref: '#/components/schemas/api.order.CreateOrderRequest'
                 required: true
             responses:
                 "200":
@@ -24,26 +93,22 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/CreateOrderReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
+                                $ref: '#/components/schemas/api.order.CreateOrderReply'
     /orders/estimate-price:
         get:
             tags:
                 - Order
-            description: 预估价格
+            description: GetEstimatePrice returns route distance, duration, and estimated fare before creating an order.
             operationId: Order_GetEstimatePrice
             parameters:
                 - name: origin
                   in: query
+                  description: Pickup location text or address.
                   schema:
                     type: string
                 - name: destination
                   in: query
+                  description: Drop-off location text or address.
                   schema:
                     type: string
             responses:
@@ -52,16 +117,131 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/GetEstimatePriceReply'
-                default:
-                    description: Default error response
+                                $ref: '#/components/schemas/api.order.GetEstimatePriceReply'
+    /orders/pending:
+        get:
+            tags:
+                - Order
+            description: ListPendingOrders returns paged pending orders for drivers to accept.
+            operationId: Order_ListPendingOrders
+            parameters:
+                - name: page
+                  in: query
+                  description: Page number starting from 1. Non-positive values use the service default.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  description: Number of items per page. The service applies a maximum limit.
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Status'
+                                $ref: '#/components/schemas/api.order.ListPendingOrdersReply'
+    /orders/{orderId}:
+        get:
+            tags:
+                - Order
+            description: GetOrder returns a single order by id.
+            operationId: Order_GetOrder
+            parameters:
+                - name: orderId
+                  in: path
+                  description: Target order id.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.GetOrderReply'
+    /orders/{orderId}/accept:
+        post:
+            tags:
+                - Order
+            description: 'Driver''s order-taking function: Upon successfully accepting an order, the order information is returned.'
+            operationId: Order_AcceptOrder
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.order.AcceptOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.AcceptOrderReply'
+    /orders/{orderId}/finish:
+        post:
+            tags:
+                - Order
+            description: Driver finishes a started order.
+            operationId: Order_FinishOrder
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.order.FinishOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.FinishOrderReply'
+    /orders/{orderId}/start:
+        post:
+            tags:
+                - Order
+            description: Driver starts an accepted order.
+            operationId: Order_StartOrder
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.order.StartOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.StartOrderReply'
 components:
     schemas:
-        CreateOrderReply:
+        api.order.AcceptOrderReply:
             type: object
             properties:
                 code:
@@ -69,17 +249,35 @@ components:
                 message:
                     type: string
                 order:
-                    $ref: '#/components/schemas/OrderInfo'
-            description: 创建订单响应
-        CreateOrderRequest:
+                    $ref: '#/components/schemas/api.order.OrderInfo'
+        api.order.AcceptOrderRequest:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                driverId:
+                    type: string
+        api.order.CreateOrderReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.order.OrderInfo'
+        api.order.CreateOrderRequest:
             type: object
             properties:
                 customerId:
                     type: string
+                    description: Customer who places the order.
                 origin:
                     type: string
+                    description: Pickup location text or address.
                 destination:
                     type: string
+                    description: Drop-off location text or address.
                 distance:
                     type: string
                     description: 'Deprecated: order service calculates these fields from map/valuation.'
@@ -91,82 +289,162 @@ components:
                     description: 'Deprecated: order service calculates these fields from map/valuation.'
                 remark:
                     type: string
-            description: 创建订单请求
-        GetEstimatePriceReply:
+                    description: Optional note from the customer.
+        api.order.FinishOrderReply:
             type: object
             properties:
                 code:
                     type: string
                 message:
                     type: string
-                origin:
-                    type: string
-                destination:
-                    type: string
-                distance:
-                    type: string
-                duration:
-                    type: string
-                price:
-                    type: string
-            description: 预估价格响应
-        GoogleProtobufAny:
-            type: object
-            properties:
-                '@type':
-                    type: string
-                    description: The type of the serialized message.
-            additionalProperties: true
-            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-        OrderInfo:
+                order:
+                    $ref: '#/components/schemas/api.order.OrderInfo'
+        api.order.FinishOrderRequest:
             type: object
             properties:
                 orderId:
                     type: string
-                orderNo:
-                    type: string
-                customerId:
-                    type: string
                 driverId:
                     type: string
-                origin:
-                    type: string
-                destination:
-                    type: string
-                distance:
-                    type: string
-                duration:
-                    type: string
-                estimatePrice:
-                    type: string
-                status:
-                    type: string
-                createdAt:
-                    type: string
-                acceptedAt:
-                    type: string
-                startedAt:
-                    type: string
-                finishedAt:
-                    type: string
-                cancelledAt:
-                    type: string
-            description: 订单信息
-        Status:
+        api.order.GetEstimatePriceReply:
             type: object
             properties:
                 code:
-                    type: integer
-                    description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
-                    format: int32
+                    type: string
                 message:
                     type: string
-                    description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
-                details:
+                origin:
+                    type: string
+                    description: Echoed pickup location after request validation.
+                destination:
+                    type: string
+                    description: Echoed drop-off location after request validation.
+                distance:
+                    type: string
+                    description: Estimated route distance returned by map service.
+                duration:
+                    type: string
+                    description: Estimated route duration returned by map service.
+                price:
+                    type: string
+                    description: Estimated fare returned by valuation service.
+        api.order.GetOrderReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.order.OrderInfo'
+        api.order.ListCustomerOrdersReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                orders:
                     type: array
                     items:
-                        $ref: '#/components/schemas/GoogleProtobufAny'
-                    description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
-            description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+                        $ref: '#/components/schemas/api.order.OrderInfo'
+                    description: Orders in the requested page.
+                total:
+                    type: string
+                    description: Total number of matching orders before pagination.
+        api.order.ListDriverOrdersReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                orders:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.order.OrderInfo'
+                    description: Orders assigned to the requested driver.
+                total:
+                    type: string
+                    description: Total number of matching orders before pagination.
+        api.order.ListPendingOrdersReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                orders:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.order.OrderInfo'
+                    description: Pending orders in the requested page.
+                total:
+                    type: string
+                    description: Total number of pending orders before pagination.
+        api.order.OrderInfo:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                    description: Internal numeric order id.
+                orderNo:
+                    type: string
+                    description: Public order number shown to users and support staff.
+                customerId:
+                    type: string
+                    description: Customer who created the order.
+                driverId:
+                    type: string
+                    description: Driver assigned to the order. It is 0 before a driver accepts.
+                origin:
+                    type: string
+                    description: Pickup location text or address.
+                destination:
+                    type: string
+                    description: Drop-off location text or address.
+                distance:
+                    type: string
+                    description: Estimated route distance returned by map service.
+                duration:
+                    type: string
+                    description: Estimated route duration returned by map service.
+                estimatePrice:
+                    type: string
+                    description: Estimated fare returned by valuation service.
+                status:
+                    type: string
+                    description: 'Current lifecycle status: pending, accepted, started, finished, or cancelled.'
+                createdAt:
+                    type: string
+                    description: Unix timestamp in seconds when the order was created.
+                acceptedAt:
+                    type: string
+                    description: Unix timestamp in seconds when a driver accepted the order. 0 means not accepted yet.
+                startedAt:
+                    type: string
+                    description: Unix timestamp in seconds when the trip started. 0 means not started yet.
+                finishedAt:
+                    type: string
+                    description: Unix timestamp in seconds when the trip finished. 0 means not finished yet.
+                cancelledAt:
+                    type: string
+                    description: Unix timestamp in seconds when the order was cancelled. 0 means not cancelled.
+        api.order.StartOrderReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.order.OrderInfo'
+        api.order.StartOrderRequest:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                driverId:
+                    type: string
 tags:
     - name: Order

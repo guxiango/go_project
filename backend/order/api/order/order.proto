@@ -9,66 +9,236 @@ option java_multiple_files = true;
 option java_package = "api.order";
 
 service Order {
-  // 创建订单
+  // CreateOrder creates a new ride order. Route and price fields are calculated by the order service.
   rpc CreateOrder (CreateOrderRequest) returns (CreateOrderReply) {
     option (google.api.http) = {
       post: "/orders"
       body: "*"
     };
   }
-  // 预估价格
+
+  // GetEstimatePrice returns route distance, duration, and estimated fare before creating an order.
   rpc GetEstimatePrice (GetEstimatePriceRequest) returns (GetEstimatePriceReply) {
     option (google.api.http) = {
       get: "/orders/estimate-price"
     };
   }
-  // 取消订单
+
+  // CancelOrder cancels an order if the operator and current order status allow it.
   rpc CancelOrder (CancelOrderRequest) returns (CancelOrderReply);
+
+  // Driver's order-taking function: Upon successfully accepting an order, the order information is returned.
+  rpc AcceptOrder (AcceptOrderRequest) returns (AcceptOrderReply) {
+    option (google.api.http) = {
+      post: "/orders/{order_id}/accept"
+      body: "*"
+    };
+  }
+
+  // Driver starts an accepted order.
+  rpc StartOrder (StartOrderRequest) returns (StartOrderReply) {
+    option (google.api.http) = {
+      post: "/orders/{order_id}/start"
+      body: "*"
+    };
+  }
+
+  // Driver finishes a started order.
+  rpc FinishOrder (FinishOrderRequest) returns (FinishOrderReply) {
+    option (google.api.http) = {
+      post: "/orders/{order_id}/finish"
+      body: "*"
+    };
+  }
+
+  // GetOrder returns a single order by id.
+  rpc GetOrder (GetOrderRequest) returns (GetOrderReply) {
+    option (google.api.http) = {
+      get: "/orders/{order_id}"
+    };
+  }
+
+  // ListCustomerOrders returns paged orders for one customer.
+  rpc ListCustomerOrders (ListCustomerOrdersRequest) returns (ListCustomerOrdersReply) {
+    option (google.api.http) = {
+      get: "/customers/{customer_id}/orders"
+    };
+  }
+
+  // ListPendingOrders returns paged pending orders for drivers to accept.
+  rpc ListPendingOrders (ListPendingOrdersRequest) returns (ListPendingOrdersReply) {
+    option (google.api.http) = {
+      get: "/orders/pending"
+    };
+  }
+
+  // ListDriverOrders returns paged orders assigned to one driver.
+  rpc ListDriverOrders (ListDriverOrdersRequest) returns (ListDriverOrdersReply) {
+    option (google.api.http) = {
+      get: "/drivers/{driver_id}/orders"
+    };
+  }
 }
 
-// 取消订单的请求
-message CancelOrderRequest {
+message AcceptOrderRequest {
   uint64 order_id = 1;
-  uint64 operator_id = 2;   // 发起取消人的id
-  string operator_type = 3; // customer / driver / system
+  uint64 driver_id = 2;
+}
+
+message AcceptOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message StartOrderRequest {
+  uint64 order_id = 1;
+  uint64 driver_id = 2;
+}
+
+message StartOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message FinishOrderRequest {
+  uint64 order_id = 1;
+  uint64 driver_id = 2;
+}
+
+message FinishOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message CancelOrderRequest {
+  // Target order id.
+  uint64 order_id = 1;
+  // Id of the customer or driver who initiates the cancellation.
+  uint64 operator_id = 2;
+  // Allowed values: "customer" or "driver".
+  string operator_type = 3;
+  // Human-readable cancellation reason, up to 255 characters.
   string reason = 4;
 }
 
-// 取消订单响应
 message CancelOrderReply {
   int64 code = 1;
   string message = 2;
   OrderInfo order = 3;
 }
 
-// 订单信息
-message OrderInfo {
+message GetOrderRequest {
+  // Target order id.
   uint64 order_id = 1;
+}
+
+message GetOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message ListCustomerOrdersRequest {
+  // Customer whose orders will be listed.
+  uint64 customer_id = 1;
+  // Page number starting from 1. Non-positive values use the service default.
+  int32 page = 2;
+  // Number of items per page. The service applies a maximum limit.
+  int32 page_size = 3;
+}
+
+message ListCustomerOrdersReply {
+  int64 code = 1;
+  string message = 2;
+  // Orders in the requested page.
+  repeated OrderInfo orders = 3;
+  // Total number of matching orders before pagination.
+  int64 total = 4;
+}
+
+message ListPendingOrdersRequest {
+  // Page number starting from 1. Non-positive values use the service default.
+  int32 page = 1;
+  // Number of items per page. The service applies a maximum limit.
+  int32 page_size = 2;
+}
+
+message ListPendingOrdersReply {
+  int64 code = 1;
+  string message = 2;
+  // Pending orders in the requested page.
+  repeated OrderInfo orders = 3;
+  // Total number of pending orders before pagination.
+  int64 total = 4;
+}
+
+message ListDriverOrdersRequest {
+  // Driver whose assigned orders will be listed.
+  uint64 driver_id = 1;
+  // Optional lifecycle status filter. Empty means all driver orders.
+  string status = 2;
+  // Page number starting from 1. Non-positive values use the service default.
+  int32 page = 3;
+  // Number of items per page. The service applies a maximum limit.
+  int32 page_size = 4;
+}
+
+message ListDriverOrdersReply {
+  int64 code = 1;
+  string message = 2;
+  // Orders assigned to the requested driver.
+  repeated OrderInfo orders = 3;
+  // Total number of matching orders before pagination.
+  int64 total = 4;
+}
+
+message OrderInfo {
+  // Internal numeric order id.
+  uint64 order_id = 1;
+  // Public order number shown to users and support staff.
   string order_no = 2;
 
+  // Customer who created the order.
   uint64 customer_id = 3;
+  // Driver assigned to the order. It is 0 before a driver accepts.
   uint64 driver_id = 4;
 
+  // Pickup location text or address.
   string origin = 5;
+  // Drop-off location text or address.
   string destination = 6;
 
+  // Estimated route distance returned by map service.
   int64 distance = 7;
+  // Estimated route duration returned by map service.
   int64 duration = 8;
+  // Estimated fare returned by valuation service.
   int64 estimate_price = 9;
+  // Current lifecycle status: pending, accepted, started, finished, or cancelled.
   string status = 10;
 
+  // Unix timestamp in seconds when the order was created.
   int64 created_at = 11;
+  // Unix timestamp in seconds when a driver accepted the order. 0 means not accepted yet.
   int64 accepted_at = 12;
+  // Unix timestamp in seconds when the trip started. 0 means not started yet.
   int64 started_at = 13;
+  // Unix timestamp in seconds when the trip finished. 0 means not finished yet.
   int64 finished_at = 14;
+  // Unix timestamp in seconds when the order was cancelled. 0 means not cancelled.
   int64 cancelled_at = 15;
 }
 
-// 创建订单请求
 message CreateOrderRequest {
+  // Customer who places the order.
   uint64 customer_id = 1;
 
+  // Pickup location text or address.
   string origin = 2;
+  // Drop-off location text or address.
   string destination = 3;
 
   // Deprecated: order service calculates these fields from map/valuation.
@@ -77,29 +247,34 @@ message CreateOrderRequest {
   int64 duration = 5;
   // Deprecated: order service calculates these fields from map/valuation.
   int64 estimate_price = 6;
+  // Optional note from the customer.
   string remark = 7;
 }
 
-// 创建订单响应
 message CreateOrderReply {
   int64 code = 1;
   string message = 2;
   OrderInfo order = 3;
 }
 
-// 预估价格请求
 message GetEstimatePriceRequest {
+  // Pickup location text or address.
   string origin = 1;
+  // Drop-off location text or address.
   string destination = 2;
 }
 
-// 预估价格响应
 message GetEstimatePriceReply {
   int64 code = 1;
   string message = 2;
+  // Echoed pickup location after request validation.
   string origin = 3;
+  // Echoed drop-off location after request validation.
   string destination = 4;
+  // Estimated route distance returned by map service.
   int64 distance = 5;
+  // Estimated route duration returned by map service.
   int64 duration = 6;
+  // Estimated fare returned by valuation service.
   int64 price = 7;
 }

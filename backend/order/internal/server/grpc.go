@@ -3,6 +3,7 @@ package server
 import (
 	v1 "order/api/helloworld/v1"
 	orderAPI "order/api/order"
+	"order/internal/auth"
 	"order/internal/conf"
 	"order/internal/service"
 
@@ -18,6 +19,7 @@ func NewGRPCServer(c *conf.Server, greeter *service.GreeterService, order *servi
 		grpc.Middleware(
 			recovery.Recovery(),
 			tracing.Server(),
+			auth.Middleware(),
 		),
 	}
 	if c.Grpc.Network != "" {

@@ -7,105 +7,268 @@ option go_package = "driver/api/driver;driver";
 import "google/api/annotations.proto";
 
 service Driver {
-  // 获取验证码
-	rpc GetVerifyCode (GetVerifyCodeRequest) returns (GetVerifyCodeReply) {
-		option (google.api.http) = {
-			get: "/driver/get-verify-code/{telephone}"
-		};
-	}
-
-  // 注册
-	rpc Register (RegisterRequest) returns (RegisterReply) {
-		option (google.api.http) = {
-			post: "driver/register",
-			body: "*",
-		};
-	}
-  // 登录
-	rpc Login (LoginRequest) returns (LoginReply) {
-		option (google.api.http) = {
-			post: "driver/login",
-			body: "*",
-		};
-	}
-
-  // 更新司机资料
-  rpc UpdateDriverProfile (UpdateDriverProfileRequest) returns (UpdateDriverProfileReply) {
+  // GetVerifyCode returns a login/register verification code.
+  rpc GetVerifyCode (GetVerifyCodeRequest) returns (GetVerifyCodeReply) {
     option (google.api.http) = {
-      post: "/driver/profile",
-      body: "*",
+      get: "/driver/get-verify-code/{telephone}"
     };
   }
 
-  // 修改司机的状态
-  rpc UpdateWorkStatus(UpdateWorkStatusRequest) returns (UpdateWorkStatusReply) {
+  // Register creates a driver account.
+  rpc Register (RegisterRequest) returns (RegisterReply) {
+    option (google.api.http) = {
+      post: "driver/register"
+      body: "*"
+    };
+  }
+
+  // Login authenticates a driver.
+  rpc Login (LoginRequest) returns (LoginReply) {
+    option (google.api.http) = {
+      post: "driver/login"
+      body: "*"
+    };
+  }
+
+  // UpdateDriverProfile updates the current driver's profile.
+  rpc UpdateDriverProfile (UpdateDriverProfileRequest) returns (UpdateDriverProfileReply) {
+    option (google.api.http) = {
+      post: "/driver/profile"
+      body: "*"
+    };
+  }
+
+  // UpdateWorkStatus updates the current driver's work status.
+  rpc UpdateWorkStatus (UpdateWorkStatusRequest) returns (UpdateWorkStatusReply) {
     option (google.api.http) = {
       post: "/driver/status"
       body: "*"
     };
   }
 
-  // 管理员审核司机的信息
+  // AcceptOrder lets the current driver accept a pending order.
+  rpc AcceptOrder (AcceptOrderRequest) returns (AcceptOrderReply) {
+    option (google.api.http) = {
+      post: "/driver/accept-order"
+      body: "*"
+    };
+  }
+
+  // StartOrder lets the current driver start an accepted order.
+  rpc StartOrder (StartOrderRequest) returns (StartOrderReply) {
+    option (google.api.http) = {
+      post: "/driver/start-order"
+      body: "*"
+    };
+  }
+
+  // FinishOrder lets the current driver finish a started order.
+  rpc FinishOrder (FinishOrderRequest) returns (FinishOrderReply) {
+    option (google.api.http) = {
+      post: "/driver/finish-order"
+      body: "*"
+    };
+  }
+
+  // CancelOrder lets the current driver cancel an accepted order.
+  rpc CancelOrder (CancelOrderRequest) returns (CancelOrderReply) {
+    option (google.api.http) = {
+      post: "/driver/cancel-order"
+      body: "*"
+    };
+  }
+
+  // GetOrder returns one order visible to the current driver.
+  rpc GetOrder (GetOrderRequest) returns (GetOrderReply) {
+    option (google.api.http) = {
+      get: "/driver/orders/{order_id}"
+    };
+  }
+
+  // ListPendingOrders returns pending orders available for drivers.
+  rpc ListPendingOrders (ListPendingOrdersRequest) returns (ListPendingOrdersReply) {
+    option (google.api.http) = {
+      get: "/driver/orders/pending"
+    };
+  }
+
+  // ListDriverOrders returns orders assigned to the current driver.
+  rpc ListDriverOrders (ListDriverOrdersRequest) returns (ListDriverOrdersReply) {
+    option (google.api.http) = {
+      get: "/driver/orders"
+    };
+  }
+
+  // InternalAuditDriverProfile lets admins audit driver profile submissions.
   rpc InternalAuditDriverProfile (InternalAuditDriverProfileRequest) returns (InternalAuditDriverProfileReply);
-  // 获取需要验证的司机的信息
-  rpc InternalListPendingDrivers(InternalListPendingDriversRequest) returns (InternalListPendingDriversReply);
+
+  // InternalListPendingDrivers returns drivers waiting for profile review.
+  rpc InternalListPendingDrivers (InternalListPendingDriversRequest) returns (InternalListPendingDriversReply);
 }
 
-// 获取司机信息的请求
+message AcceptOrderRequest {
+  uint64 order_id = 1;
+}
+
+message AcceptOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message StartOrderRequest {
+  uint64 order_id = 1;
+}
+
+message StartOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message FinishOrderRequest {
+  uint64 order_id = 1;
+}
+
+message FinishOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message CancelOrderRequest {
+  uint64 order_id = 1;
+  string reason = 2;
+}
+
+message CancelOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message GetOrderRequest {
+  uint64 order_id = 1;
+}
+
+message GetOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message ListPendingOrdersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message ListPendingOrdersReply {
+  int64 code = 1;
+  string message = 2;
+  repeated OrderInfo orders = 3;
+  int64 total = 4;
+}
+
+message ListDriverOrdersRequest {
+  string status = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListDriverOrdersReply {
+  int64 code = 1;
+  string message = 2;
+  repeated OrderInfo orders = 3;
+  int64 total = 4;
+}
+
+message OrderInfo {
+  // Internal numeric order id.
+  uint64 order_id = 1;
+  // Public order number shown to users and support staff.
+  string order_no = 2;
+
+  // Customer who created the order.
+  uint64 customer_id = 3;
+  // Driver assigned to the order. It is 0 before a driver accepts.
+  uint64 driver_id = 4;
+
+  // Pickup location text or address.
+  string origin = 5;
+  // Drop-off location text or address.
+  string destination = 6;
+
+  // Estimated route distance returned by map service.
+  int64 distance = 7;
+  // Estimated route duration returned by map service.
+  int64 duration = 8;
+  // Estimated fare returned by valuation service.
+  int64 estimate_price = 9;
+  // Current lifecycle status: pending, accepted, started, finished, or cancelled.
+  string status = 10;
+
+  // Unix timestamp in seconds when the order was created.
+  int64 created_at = 11;
+  // Unix timestamp in seconds when a driver accepted the order. 0 means not accepted yet.
+  int64 accepted_at = 12;
+  // Unix timestamp in seconds when the trip started. 0 means not started yet.
+  int64 started_at = 13;
+  // Unix timestamp in seconds when the trip finished. 0 means not finished yet.
+  int64 finished_at = 14;
+  // Unix timestamp in seconds when the order was cancelled. 0 means not cancelled.
+  int64 cancelled_at = 15;
+}
+
 message InternalListPendingDriversRequest {
-	int32 page = 1;
-	int32 page_size = 2;
+  int32 page = 1;
+  int32 page_size = 2;
 }
 
 message InternalPendingDriver {
-	uint64 driver_id = 1;             // 司机id
-	string name = 2;                  // 司机名字
-	string telephone = 3;             // 手机号
-	string status = 4;                // 当前状态
-	string id_number = 5;             // 身份证号
-	string id_image_a = 6;            // 省份证正反面
-	string id_image_b = 7;
-	string license_image_a = 8;       // 驾驶证正反面
-	string license_image_b = 9;
-	string distinct_code = 10;
-	int64 updated_at = 11;            // 信息的更新时间
+  uint64 driver_id = 1;
+  string name = 2;
+  string telephone = 3;
+  string status = 4;
+  string id_number = 5;
+  string id_image_a = 6;
+  string id_image_b = 7;
+  string license_image_a = 8;
+  string license_image_b = 9;
+  string distinct_code = 10;
+  int64 updated_at = 11;
 }
 
-// 获取司机信息的回复
 message InternalListPendingDriversReply {
-	int64 code = 1;
-	string message = 2;
-	int64 total = 3;
-	repeated InternalPendingDriver drivers = 4;
+  int64 code = 1;
+  string message = 2;
+  int64 total = 3;
+  repeated InternalPendingDriver drivers = 4;
 }
 
-// 管理员审核的请求
 message InternalAuditDriverProfileRequest {
-	uint64 driver_id = 1;
-	uint64 admin_id = 2;
-	bool approved = 3;
-	string reason = 4;
+  uint64 driver_id = 1;
+  uint64 admin_id = 2;
+  bool approved = 3;
+  string reason = 4;
 }
-// 管理员审核的回复
+
 message InternalAuditDriverProfileReply {
-	int64 code = 1;
-  	string message = 2;
-  	string status = 3;
+  int64 code = 1;
+  string message = 2;
+  string status = 3;
 }
 
-// 修改司机状态的请求
 message UpdateWorkStatusRequest {
-  string status = 1;              // online/offline/busy
+  // Allowed values: online, offline, or busy.
+  string status = 1;
 }
 
-// 修改司机状态的回复
 message UpdateWorkStatusReply {
   int64 code = 1;
   string message = 2;
   string status = 3;
 }
 
-// 更新司机资料请求
 message UpdateDriverProfileRequest {
   string name = 1;
   string id_number = 2;
@@ -117,54 +280,60 @@ message UpdateDriverProfileRequest {
   string telephone_bak = 8;
 }
 
-// 更新司机资料回复
 message UpdateDriverProfileReply {
-  int64  code = 1;
+  int64 code = 1;
   string message = 2;
 }
 
-// 登录请求
-message LoginRequest  {
-	string telephone = 1;
-	string verify_code = 2;
+message LoginRequest {
+  string telephone = 1;
+  string verify_code = 2;
 }
 
-// 登录回复
 message LoginReply {
-	int64 code = 1;
-	string message = 2;
-	string token = 3;				// 登录成功后返回的token
-	int64 token_create_at = 4;		// token生成时间
-	int32 token_ttl = 5;			// token过期时间
-	string status = 6;				// 司机的状态
-	uint64 driver_id = 7;			// 司机ID
+  int64 code = 1;
+  string message = 2;
+  // Login token.
+  string token = 3;
+  // Token creation timestamp.
+  int64 token_create_at = 4;
+  // Token time to live in seconds.
+  int32 token_ttl = 5;
+  // Driver status.
+  string status = 6;
+  // Driver id.
+  uint64 driver_id = 7;
 }
 
-// 注册请求
 message RegisterRequest {
-	string telephone = 1;			// 手机号
-	string verify_code = 2;			// 验证码
+  // Phone number.
+  string telephone = 1;
+  // Verification code.
+  string verify_code = 2;
 }
 
-// 注册回复
 message RegisterReply {
-	int64 code = 1;				
-	string message = 2;				
-	string status = 3;
-	uint64 driver_id = 4;         // 司机ID
+  int64 code = 1;
+  string message = 2;
+  string status = 3;
+  // Driver id.
+  uint64 driver_id = 4;
 }
 
-
-// 获取验证码请求
 message GetVerifyCodeRequest {
-	string telephone = 1;	// 手机号
+  // Phone number.
+  string telephone = 1;
 }
 
-// 获取验证码回复
 message GetVerifyCodeReply {
-	int64 code = 1;			// 状态码
-	string message = 2;		// 消息
-	string verify_code = 3;	// 验证码
-	int64 verify_code_time = 4;	// 验证码生成时间
-	int32 verify_code_ttl = 5;	// 验证码过期时间
+  // Status code.
+  int64 code = 1;
+  // Result message.
+  string message = 2;
+  // Verification code.
+  string verify_code = 3;
+  // Verification code creation timestamp.
+  int64 verify_code_time = 4;
+  // Verification code time to live in seconds.
+  int32 verify_code_ttl = 5;
 }

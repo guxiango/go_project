@@ -175,6 +175,47 @@ func (d *DriverData) UpdateDriverStatusByID(ctx context.Context, id uint, curren
 	return nil
 }
 
+func (d *DriverData) UpdateDriverStatusFromAny(ctx context.Context, id uint, currentStatuses []string, targetStatus string) (string, error) {
+	if len(currentStatuses) == 0 {
+		return "", errors.New("driver current status is required")
+	}
+	returnedStatus := ""
+	err := d.data.Mdb.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var driver biz.Driver
+		if err := tx.First(&driver, id).Error; err != nil {
+			return err
+		}
+		if !driver.Status.Valid || driver.Status.String == "" {
+			return errors.New("driver status missing")
+		}
+		allowed := false
+		for _, status := range currentStatuses {
+			if driver.Status.String == status {
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			return errors.New("driver status changed")
+		}
+		result := tx.Model(&biz.Driver{}).
+			Where("id = ? AND status = ?", id, driver.Status.String).
+			Update("status", targetStatus)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return errors.New("driver status changed")
+		}
+		returnedStatus = driver.Status.String
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+	return returnedStatus, nil
+}
+
 // AuditDriverStatusByID 根据id审核司机资料并修改状态
 func (d *DriverData) AuditDriverStatusByID(ctx context.Context, id uint, currentStatus string, targetStatus string) error {
 	result := d.data.Mdb.WithContext(ctx).

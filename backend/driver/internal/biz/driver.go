@@ -3,44 +3,47 @@ package biz
 import (
 	"context"
 	"database/sql"
+	orderAPI "driver/api/order"
 	verifyCode "driver/api/verifyCode"
+	"errors"
+	"time"
+
 	"github.com/go-kratos/kratos/contrib/registry/consul/v2"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	kgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
-	"time"
 
 	jwtv5 "github.com/golang-jwt/jwt/v5"
 )
 
 const (
 	verifyCodeServiceName = "VerifyCode"
+	orderServiceName      = "Order"
 )
 
 type DriverBiz struct {
 	verifyCode verifyCode.VerifyCodeClient
+	order      orderAPI.OrderClient
 }
 
-// 定义司机表的模型
+// Driver is the database model for driver accounts.
 type Driver struct {
-	// 基础模型
 	gorm.Model
-	// 业务模型
 	DriverWork
 }
 
 const (
-	DriverStatusStop     = "stop"     // 停止服务
-	DriverStatusPending  = "pending"  // 待审核
-	DriverStatusApproved = "approved" // 审核通过
-	DriverStatusOnline   = "online"   // 在线
-	DriverStatusBusy     = "busy"     // 忙碌
-	DriverStatusOffline  = "offline"  // 离线
-	DriverStatusBlocked  = "blocked"  // 封禁
+	DriverStatusStop     = "stop"     // Stopped.
+	DriverStatusPending  = "pending"  // Waiting for review.
+	DriverStatusApproved = "approved" // Review approved.
+	DriverStatusOnline   = "online"   // Online and available.
+	DriverStatusBusy     = "busy"     // Busy with work.
+	DriverStatusOffline  = "offline"  // Offline.
+	DriverStatusBlocked  = "blocked"  // Blocked.
 )
 
-// 业务模型
+// DriverWork contains editable driver profile and work fields.
 type DriverWork struct {
 	Telephone     string         `gorm:"type:varchar(16);uniqueIndex;" json:"telephone"`
 	Token         sql.NullString `gorm:"type:varchar(512);" json:"token"`
@@ -57,7 +60,7 @@ type DriverWork struct {
 	TelephoneBak  sql.NullString `gorm:"type:varchar(255);index" json:"telephone_bak"`
 }
 
-// 定义DriverClaims结构体，用于JWT的Claims部分'
+// DriverClaims stores driver identity in JWT claims.
 type DriverClaims struct {
 	DriverId   uint   `json:"driver_id"`
 	DriverName string `json:"driver_name"`
@@ -69,16 +72,24 @@ func NewDriverBiz(d *consul.Registry) (*DriverBiz, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
+	orderConn, err := dial(d, orderServiceName)
+	if err != nil {
+		return nil, nil, err
+	}
 	cleanup := func() {
 		verifyCodeConn.Close()
+		orderConn.Close()
 	}
 	verifyCodeClient := verifyCode.NewVerifyCodeClient(verifyCodeConn)
-	return &DriverBiz{verifyCode: verifyCodeClient}, cleanup, nil
+	orderClient := orderAPI.NewOrderClient(orderConn)
+	return &DriverBiz{
+		verifyCode: verifyCodeClient,
+		order:      orderClient,
+	}, cleanup, nil
 }
 
-// 获取验证码
+// GetVerifyCode fetches a verification code from the verify-code service.
 func (db *DriverBiz) GetVerifyCode(ctx context.Context, telephone string, length uint32, typ verifyCode.TYPE) (*verifyCode.GetVerifyCodeReply, error) {
-	// 调用验证码服务来获取验证码
 	reply, err := db.verifyCode.GetVerifyCode(ctx, &verifyCode.GetVerifyCodeRequest{
 		Length: length,
 		Type:   typ,
@@ -105,4 +116,10 @@ func dial(d *consul.Registry, serviceName string) (*grpc.ClientConn, error) {
 func (db *DriverBiz) InitDriverInfo(ctx context.Context, tel string) (*Driver, error) {
 
 	return nil, nil
+}
+func (db *DriverBiz) OrderClient() (orderAPI.OrderClient, error) {
+	if db.order != nil {
+		return db.order, nil
+	}
+	return nil, errors.New("The client has not yet been created.")
 }

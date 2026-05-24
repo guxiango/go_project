@@ -5,6 +5,692 @@ openapi: 3.0.3
 info:
     title: ""
     version: 0.0.1
-paths: {}
+paths:
+    /customer/get-estimate-price:
+        get:
+            tags:
+                - Customer
+            operationId: Customer_GetEstimatePrice
+            parameters:
+                - name: origin
+                  in: query
+                  schema:
+                    type: string
+                - name: destination
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.customer.GetEstimatePriceRsp'
+    /customer/get-verify-code/{telephone}:
+        get:
+            tags:
+                - Customer
+            operationId: Customer_GetVerifyCode
+            parameters:
+                - name: telephone
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.customer.GetVerifyCodeRsp'
+    /customer/login:
+        post:
+            tags:
+                - Customer
+            operationId: Customer_Login
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.customer.LoginReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.customer.LoginRsp'
+    /customer/logout:
+        get:
+            tags:
+                - Customer
+            operationId: Customer_Logout
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.customer.LogoutRsp'
+    /customer/orders:
+        get:
+            tags:
+                - Customer
+            operationId: Customer_ListCustomerOrders
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.customer.ListCustomerOrdersRsp'
+        post:
+            tags:
+                - Customer
+            operationId: Customer_CreateOrder
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.customer.CreateOrderReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.customer.CreateOrderRsp'
+    /customer/orders/{orderId}:
+        get:
+            tags:
+                - Customer
+            operationId: Customer_GetOrder
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.customer.GetOrderRsp'
+    /customer/orders/{orderId}/cancel:
+        post:
+            tags:
+                - Customer
+            operationId: Customer_CancelOrder
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.customer.CancelOrderReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.customer.CancelOrderRsp'
+    /customers/{customerId}/orders:
+        get:
+            tags:
+                - Order
+            operationId: Order_ListCustomerOrders
+            parameters:
+                - name: customerId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.ListCustomerOrdersReply'
+    /drivers/{driverId}/orders:
+        get:
+            tags:
+                - Order
+            operationId: Order_ListDriverOrders
+            parameters:
+                - name: driverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.ListDriverOrdersReply'
+    /orders:
+        post:
+            tags:
+                - Order
+            operationId: Order_CreateOrder
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.order.CreateOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.CreateOrderReply'
+    /orders/estimate-price:
+        get:
+            tags:
+                - Order
+            operationId: Order_GetEstimatePrice
+            parameters:
+                - name: origin
+                  in: query
+                  schema:
+                    type: string
+                - name: destination
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.GetEstimatePriceReply'
+    /orders/pending:
+        get:
+            tags:
+                - Order
+            operationId: Order_ListPendingOrders
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.ListPendingOrdersReply'
+    /orders/{orderId}:
+        get:
+            tags:
+                - Order
+            operationId: Order_GetOrder
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.GetOrderReply'
+    /orders/{orderId}/accept:
+        post:
+            tags:
+                - Order
+            operationId: Order_AcceptOrder
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.order.AcceptOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.AcceptOrderReply'
+    /orders/{orderId}/finish:
+        post:
+            tags:
+                - Order
+            operationId: Order_FinishOrder
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.order.FinishOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.FinishOrderReply'
+    /orders/{orderId}/start:
+        post:
+            tags:
+                - Order
+            operationId: Order_StartOrder
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.order.StartOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.order.StartOrderReply'
 components:
-    schemas: {}
+    schemas:
+        api.customer.CancelOrderReq:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                reason:
+                    type: string
+        api.customer.CancelOrderRsp:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.customer.OrderInfo'
+        api.customer.CreateOrderReq:
+            type: object
+            properties:
+                origin:
+                    type: string
+                destination:
+                    type: string
+                remark:
+                    type: string
+        api.customer.CreateOrderRsp:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.customer.OrderInfo'
+        api.customer.GetEstimatePriceRsp:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                price:
+                    type: string
+                origin:
+                    type: string
+                destination:
+                    type: string
+                distance:
+                    type: string
+                duration:
+                    type: string
+        api.customer.GetOrderRsp:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.customer.OrderInfo'
+        api.customer.GetVerifyCodeRsp:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                verifyCode:
+                    type: string
+                verifyCodeTime:
+                    type: string
+                verifyCodeTtl:
+                    type: integer
+                    format: int32
+        api.customer.ListCustomerOrdersRsp:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                orders:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.customer.OrderInfo'
+                total:
+                    type: string
+        api.customer.LoginReq:
+            type: object
+            properties:
+                telephone:
+                    type: string
+                verifyCode:
+                    type: string
+        api.customer.LoginRsp:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                token:
+                    type: string
+                tokenCreateAt:
+                    type: string
+                tokenTtl:
+                    type: integer
+                    format: int32
+        api.customer.LogoutRsp:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+        api.customer.OrderInfo:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                customerId:
+                    type: string
+                driverId:
+                    type: string
+                origin:
+                    type: string
+                destination:
+                    type: string
+                distance:
+                    type: string
+                duration:
+                    type: string
+                estimatePrice:
+                    type: string
+                status:
+                    type: string
+                createdAt:
+                    type: string
+                acceptedAt:
+                    type: string
+                startedAt:
+                    type: string
+                finishedAt:
+                    type: string
+                cancelledAt:
+                    type: string
+        api.order.AcceptOrderReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.order.OrderInfo'
+        api.order.AcceptOrderRequest:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                driverId:
+                    type: string
+        api.order.CreateOrderReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.order.OrderInfo'
+        api.order.CreateOrderRequest:
+            type: object
+            properties:
+                customerId:
+                    type: string
+                origin:
+                    type: string
+                destination:
+                    type: string
+                distance:
+                    type: string
+                duration:
+                    type: string
+                estimatePrice:
+                    type: string
+                remark:
+                    type: string
+        api.order.FinishOrderReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.order.OrderInfo'
+        api.order.FinishOrderRequest:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                driverId:
+                    type: string
+        api.order.GetEstimatePriceReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                origin:
+                    type: string
+                destination:
+                    type: string
+                distance:
+                    type: string
+                duration:
+                    type: string
+                price:
+                    type: string
+        api.order.GetOrderReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.order.OrderInfo'
+        api.order.ListCustomerOrdersReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                orders:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.order.OrderInfo'
+                total:
+                    type: string
+        api.order.ListDriverOrdersReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                orders:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.order.OrderInfo'
+                total:
+                    type: string
+        api.order.ListPendingOrdersReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                orders:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.order.OrderInfo'
+                total:
+                    type: string
+        api.order.OrderInfo:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                customerId:
+                    type: string
+                driverId:
+                    type: string
+                origin:
+                    type: string
+                destination:
+                    type: string
+                distance:
+                    type: string
+                duration:
+                    type: string
+                estimatePrice:
+                    type: string
+                status:
+                    type: string
+                createdAt:
+                    type: string
+                acceptedAt:
+                    type: string
+                startedAt:
+                    type: string
+                finishedAt:
+                    type: string
+                cancelledAt:
+                    type: string
+        api.order.StartOrderReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/api.order.OrderInfo'
+        api.order.StartOrderRequest:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                driverId:
+                    type: string
+tags:
+    - name: Customer
+    - name: Order

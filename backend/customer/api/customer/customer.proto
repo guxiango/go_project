@@ -2,86 +2,169 @@ syntax = "proto3";
 
 package api.customer;
 
-option go_package = "customer/api/customer;customer";
 import "google/api/annotations.proto";
 
+option go_package = "customer/api/customer;customer";
+
 service Customer {
-	// 获取验证码的服务
-	rpc GetVerifyCode (GetVerifyCodeReq) returns (GetVerifyCodeRsp) {
-		option (google.api.http) = {
-			get: "/customer/get-verify-code/{telephone}"
-		};
-	}
+  rpc GetVerifyCode (GetVerifyCodeReq) returns (GetVerifyCodeRsp) {
+    option (google.api.http) = {
+      get: "/customer/get-verify-code/{telephone}"
+    };
+  }
 
+  rpc Login (LoginReq) returns (LoginRsp) {
+    option (google.api.http) = {
+      post: "/customer/login"
+      body: "*"
+    };
+  }
 
-	rpc Login (LoginReq) returns (LoginRsp) {
-		option (google.api.http) = {
-			post: "/customer/login",
-			body: "*", 				// 请求体为LoginReq
-		};
-	}
+  rpc Logout (LogoutReq) returns (LogoutRsp) {
+    option (google.api.http) = {
+      get: "/customer/logout"
+    };
+  }
 
-	rpc Logout (LogoutReq) returns (LogoutRsp) {
-		option (google.api.http) = {
-			get: "/customer/logout",
-		};
-	}
+  rpc GetEstimatePrice (GetEstimatePriceReq) returns (GetEstimatePriceRsp) {
+    option (google.api.http) = {
+      get: "/customer/get-estimate-price"
+    };
+  }
 
-	// 价格预估
-	rpc GetEstimatePrice (GetEstimatePriceReq) returns (GetEstimatePriceRsp) {
-		option (google.api.http) = {
-			get: "/customer/get-estimate-price",
-		};
-	}
+  rpc CreateOrder (CreateOrderReq) returns (CreateOrderRsp) {
+    option (google.api.http) = {
+      post: "/customer/orders"
+      body: "*"
+    };
+  }
+
+  rpc GetOrder (GetOrderReq) returns (GetOrderRsp) {
+    option (google.api.http) = {
+      get: "/customer/orders/{order_id}"
+    };
+  }
+
+  rpc ListCustomerOrders (ListCustomerOrdersReq) returns (ListCustomerOrdersRsp) {
+    option (google.api.http) = {
+      get: "/customer/orders"
+    };
+  }
+
+  rpc CancelOrder (CancelOrderReq) returns (CancelOrderRsp) {
+    option (google.api.http) = {
+      post: "/customer/orders/{order_id}/cancel"
+      body: "*"
+    };
+  }
 }
 
-// 价格预估请求
 message GetEstimatePriceReq {
-	string origin = 1;			// 起点坐标
-	string destination = 2;		// 终点坐标
+  string origin = 1;
+  string destination = 2;
 }
 
-// 价格预估回复
 message GetEstimatePriceRsp {
-	int64 code = 1;			// 状态码
-	string message = 2;		// 消息
-	int64 price = 3;			// 预估价格
+  int64 code = 1;
+  string message = 2;
+  int64 price = 3;
+  string origin = 4;
+  string destination = 5;
+  int64 distance = 6;
+  int64 duration = 7;
 }
 
-// 登出请求
-message LogoutReq {
+message CreateOrderReq {
+  string origin = 1;
+  string destination = 2;
+  string remark = 3;
 }
 
-// 登出回复
+message CreateOrderRsp {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message GetOrderReq {
+  uint64 order_id = 1;
+}
+
+message GetOrderRsp {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message ListCustomerOrdersReq {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message ListCustomerOrdersRsp {
+  int64 code = 1;
+  string message = 2;
+  repeated OrderInfo orders = 3;
+  int64 total = 4;
+}
+
+message CancelOrderReq {
+  uint64 order_id = 1;
+  string reason = 2;
+}
+
+message CancelOrderRsp {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message OrderInfo {
+  uint64 order_id = 1;
+  string order_no = 2;
+  uint64 customer_id = 3;
+  uint64 driver_id = 4;
+  string origin = 5;
+  string destination = 6;
+  int64 distance = 7;
+  int64 duration = 8;
+  int64 estimate_price = 9;
+  string status = 10;
+  int64 created_at = 11;
+  int64 accepted_at = 12;
+  int64 started_at = 13;
+  int64 finished_at = 14;
+  int64 cancelled_at = 15;
+}
+
+message LogoutReq {}
+
 message LogoutRsp {
-	int64 code = 1;
-	string message = 2;
+  int64 code = 1;
+  string message = 2;
 }
 
-// 登录请求
 message LoginReq {
-	string telephone = 1;
-	string verify_code = 2;
+  string telephone = 1;
+  string verify_code = 2;
 }
 
-// 登录回复
 message LoginRsp {
-	int64 code = 1;
-	string message = 2;
-	string token = 3;			// 令牌
-	int64 token_create_at = 4;	// 令牌生成时间
-	int32 token_ttl = 5;		// 令牌过期时间
-}
-// 获取验证码请求
-message GetVerifyCodeReq {
-	string telephone = 1;
+  int64 code = 1;
+  string message = 2;
+  string token = 3;
+  int64 token_create_at = 4;
+  int32 token_ttl = 5;
 }
 
-// 获取验证码回复
+message GetVerifyCodeReq {
+  string telephone = 1;
+}
+
 message GetVerifyCodeRsp {
-	int64 code = 1;
-	string message = 2;
-	string verify_code = 3;		// 验证码
-	int64 verify_code_time = 4;	// 验证码生成时间
-	int32 verify_code_ttl = 5;	// 验证码过期时间
+  int64 code = 1;
+  string message = 2;
+  string verify_code = 3;
+  int64 verify_code_time = 4;
+  int32 verify_code_ttl = 5;
 }

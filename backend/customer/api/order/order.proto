@@ -2,10 +2,201 @@ syntax = "proto3";
 
 package api.order;
 
+import "google/api/annotations.proto";
+
 option go_package = "customer/api/order;order";
+option java_multiple_files = true;
+option java_package = "api.order";
 
 service Order {
-  rpc GetEstimatePrice (GetEstimatePriceRequest) returns (GetEstimatePriceReply);
+  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderReply) {
+    option (google.api.http) = {
+      post: "/orders"
+      body: "*"
+    };
+  }
+
+  rpc GetEstimatePrice (GetEstimatePriceRequest) returns (GetEstimatePriceReply) {
+    option (google.api.http) = {
+      get: "/orders/estimate-price"
+    };
+  }
+
+  rpc CancelOrder (CancelOrderRequest) returns (CancelOrderReply);
+
+  rpc AcceptOrder (AcceptOrderRequest) returns (AcceptOrderReply) {
+    option (google.api.http) = {
+      post: "/orders/{order_id}/accept"
+      body: "*"
+    };
+  }
+
+  rpc StartOrder (StartOrderRequest) returns (StartOrderReply) {
+    option (google.api.http) = {
+      post: "/orders/{order_id}/start"
+      body: "*"
+    };
+  }
+
+  rpc FinishOrder (FinishOrderRequest) returns (FinishOrderReply) {
+    option (google.api.http) = {
+      post: "/orders/{order_id}/finish"
+      body: "*"
+    };
+  }
+
+  rpc GetOrder (GetOrderRequest) returns (GetOrderReply) {
+    option (google.api.http) = {
+      get: "/orders/{order_id}"
+    };
+  }
+
+  rpc ListCustomerOrders (ListCustomerOrdersRequest) returns (ListCustomerOrdersReply) {
+    option (google.api.http) = {
+      get: "/customers/{customer_id}/orders"
+    };
+  }
+
+  rpc ListPendingOrders (ListPendingOrdersRequest) returns (ListPendingOrdersReply) {
+    option (google.api.http) = {
+      get: "/orders/pending"
+    };
+  }
+
+  rpc ListDriverOrders (ListDriverOrdersRequest) returns (ListDriverOrdersReply) {
+    option (google.api.http) = {
+      get: "/drivers/{driver_id}/orders"
+    };
+  }
+}
+
+message AcceptOrderRequest {
+  uint64 order_id = 1;
+  uint64 driver_id = 2;
+}
+
+message AcceptOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message StartOrderRequest {
+  uint64 order_id = 1;
+  uint64 driver_id = 2;
+}
+
+message StartOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message FinishOrderRequest {
+  uint64 order_id = 1;
+  uint64 driver_id = 2;
+}
+
+message FinishOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message CancelOrderRequest {
+  uint64 order_id = 1;
+  uint64 operator_id = 2;
+  string operator_type = 3;
+  string reason = 4;
+}
+
+message CancelOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message GetOrderRequest {
+  uint64 order_id = 1;
+}
+
+message GetOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+message ListCustomerOrdersRequest {
+  uint64 customer_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListCustomerOrdersReply {
+  int64 code = 1;
+  string message = 2;
+  repeated OrderInfo orders = 3;
+  int64 total = 4;
+}
+
+message ListPendingOrdersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message ListPendingOrdersReply {
+  int64 code = 1;
+  string message = 2;
+  repeated OrderInfo orders = 3;
+  int64 total = 4;
+}
+
+message ListDriverOrdersRequest {
+  uint64 driver_id = 1;
+  string status = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ListDriverOrdersReply {
+  int64 code = 1;
+  string message = 2;
+  repeated OrderInfo orders = 3;
+  int64 total = 4;
+}
+
+message OrderInfo {
+  uint64 order_id = 1;
+  string order_no = 2;
+  uint64 customer_id = 3;
+  uint64 driver_id = 4;
+  string origin = 5;
+  string destination = 6;
+  int64 distance = 7;
+  int64 duration = 8;
+  int64 estimate_price = 9;
+  string status = 10;
+  int64 created_at = 11;
+  int64 accepted_at = 12;
+  int64 started_at = 13;
+  int64 finished_at = 14;
+  int64 cancelled_at = 15;
+}
+
+message CreateOrderRequest {
+  uint64 customer_id = 1;
+  string origin = 2;
+  string destination = 3;
+  int64 distance = 4;
+  int64 duration = 5;
+  int64 estimate_price = 6;
+  string remark = 7;
+}
+
+message CreateOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
 }
 
 message GetEstimatePriceRequest {

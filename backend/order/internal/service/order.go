@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	pb "order/api/order"
+	"order/internal/auth"
 	"order/internal/biz"
 	"order/internal/data"
 	"strings"
@@ -19,6 +20,9 @@ import (
 const (
 	maxCreateOrderRetries = 3
 	maxCancelReasonLength = 255
+	// Page size defaults protect list APIs from accidental large scans.
+	defaultPageSize = 20
+	maxPageSize     = 100
 )
 
 type OrderService struct {
@@ -36,8 +40,51 @@ func NewOrderService(OrderBiz *biz.OrderBiz, OrderData *data.OrderData, logger l
 	}
 }
 
+func requireAuth(ctx context.Context) (*auth.User, error) {
+	user, ok := auth.FromContext(ctx)
+	if !ok || user == nil || user.ID == 0 {
+		return nil, kratoserrors.Unauthorized("AUTH_MISSING", "auth user missing")
+	}
+	user.Role = strings.TrimSpace(strings.ToLower(user.Role))
+	if user.Role == "" {
+		return nil, kratoserrors.Unauthorized("AUTH_ROLE_MISSING", "auth role missing")
+	}
+	return user, nil
+}
+
+func requireAuthRole(ctx context.Context, role string) (*auth.User, error) {
+	user, err := requireAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if user.Role != role {
+		return nil, kratoserrors.Forbidden("FORBIDDEN", role+" role required")
+	}
+	return user, nil
+}
+
+func authorizeOrderAccess(user *auth.User, order *biz.Order) error {
+	switch user.Role {
+	case "customer":
+		if uint64(order.CustomerID) == user.ID {
+			return nil
+		}
+	case "driver":
+		if order.DriverID.Valid && uint64(order.DriverID.Int64) == user.ID {
+			return nil
+		}
+	case "admin":
+		return nil
+	}
+	return kratoserrors.Forbidden("ORDER_ACCESS_DENIED", "order access denied")
+}
+
 // CreateOrder creates a ride order.
 func (s *OrderService) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.CreateOrderReply, error) {
+	user, err := requireAuthRole(ctx, "customer")
+	if err != nil {
+		return nil, err
+	}
 	if err := validateCreateOrderRequest(req); err != nil {
 		return nil, err
 	}
@@ -49,7 +96,8 @@ func (s *OrderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 
 	var order *biz.Order
 	for i := 0; i < maxCreateOrderRetries; i++ {
-		order = buildOrder(req, estimate)
+		// OrderNo contains random suffixes; retry only if the unique index collides.
+		order = buildOrder(req, user.ID, estimate)
 		err = s.OrderData.CreateOrderData(ctx, order)
 		if err == nil {
 			return &pb.CreateOrderReply{
@@ -91,12 +139,104 @@ func (s *OrderService) GetEstimatePrice(ctx context.Context, req *pb.GetEstimate
 	}, nil
 }
 
+func (s *OrderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.GetOrderReply, error) {
+	user, err := requireAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if req == nil || req.OrderId == 0 {
+		return nil, kratoserrors.BadRequest("INVALID_ORDER_ID", "order_id is required")
+	}
+	order, err := s.OrderData.GetOrderById(ctx, int64(req.OrderId))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, kratoserrors.NotFound("ORDER_NOT_FOUND", "order not found")
+		}
+		s.log.WithContext(ctx).Errorf("get order failed: %v", err)
+		return nil, kratoserrors.InternalServer("GET_ORDER_FAILED", "get order failed")
+	}
+	if err := authorizeOrderAccess(user, order); err != nil {
+		return nil, err
+	}
+	return &pb.GetOrderReply{
+		Code:    0,
+		Message: "get order success",
+		Order:   toOrderInfo(order),
+	}, nil
+}
+
+func (s *OrderService) ListCustomerOrders(ctx context.Context, req *pb.ListCustomerOrdersRequest) (*pb.ListCustomerOrdersReply, error) {
+	user, err := requireAuthRole(ctx, "customer")
+	if err != nil {
+		return nil, err
+	}
+	if req == nil {
+		req = &pb.ListCustomerOrdersRequest{}
+	}
+	page, pageSize := normalizePage(req.Page, req.PageSize)
+	orders, total, err := s.OrderData.ListCustomerOrders(ctx, user.ID, page, pageSize)
+	if err != nil {
+		s.log.WithContext(ctx).Errorf("list customer orders failed: %v", err)
+		return nil, kratoserrors.InternalServer("LIST_CUSTOMER_ORDERS_FAILED", "list customer orders failed")
+	}
+	return &pb.ListCustomerOrdersReply{
+		Code:    0,
+		Message: "list customer orders success",
+		Orders:  toOrderInfos(orders),
+		Total:   total,
+	}, nil
+}
+
+func (s *OrderService) ListPendingOrders(ctx context.Context, req *pb.ListPendingOrdersRequest) (*pb.ListPendingOrdersReply, error) {
+	if _, err := requireAuthRole(ctx, "driver"); err != nil {
+		return nil, err
+	}
+	if req == nil {
+		req = &pb.ListPendingOrdersRequest{}
+	}
+	page, pageSize := normalizePage(req.Page, req.PageSize)
+	orders, total, err := s.OrderData.ListPendingOrders(ctx, page, pageSize)
+	if err != nil {
+		s.log.WithContext(ctx).Errorf("list pending orders failed: %v", err)
+		return nil, kratoserrors.InternalServer("LIST_PENDING_ORDERS_FAILED", "list pending orders failed")
+	}
+	return &pb.ListPendingOrdersReply{
+		Code:    0,
+		Message: "list pending orders success",
+		Orders:  toOrderInfos(orders),
+		Total:   total,
+	}, nil
+}
+
+func (s *OrderService) ListDriverOrders(ctx context.Context, req *pb.ListDriverOrdersRequest) (*pb.ListDriverOrdersReply, error) {
+	user, err := requireAuthRole(ctx, "driver")
+	if err != nil {
+		return nil, err
+	}
+	if req == nil {
+		req = &pb.ListDriverOrdersRequest{}
+	}
+	if err := validateListDriverOrdersRequest(req); err != nil {
+		return nil, err
+	}
+	status := strings.TrimSpace(strings.ToLower(req.Status))
+	page, pageSize := normalizePage(req.Page, req.PageSize)
+	orders, total, err := s.OrderData.ListDriverOrders(ctx, user.ID, status, page, pageSize)
+	if err != nil {
+		s.log.WithContext(ctx).Errorf("list driver orders failed: %v", err)
+		return nil, kratoserrors.InternalServer("LIST_DRIVER_ORDERS_FAILED", "list driver orders failed")
+	}
+	return &pb.ListDriverOrdersReply{
+		Code:    0,
+		Message: "list driver orders success",
+		Orders:  toOrderInfos(orders),
+		Total:   total,
+	}, nil
+}
+
 func validateCreateOrderRequest(req *pb.CreateOrderRequest) error {
 	if req == nil {
 		return kratoserrors.BadRequest("INVALID_ORDER_REQUEST", "request is required")
-	}
-	if req.CustomerId == 0 {
-		return kratoserrors.BadRequest("INVALID_CUSTOMER_ID", "customer_id is required")
 	}
 	return validateEstimatePriceRequest(req.Origin, req.Destination)
 }
@@ -111,10 +251,26 @@ func validateEstimatePriceRequest(origin, destination string) error {
 	return nil
 }
 
-func buildOrder(req *pb.CreateOrderRequest, estimate *biz.EstimateResult) *biz.Order {
+func validateListDriverOrdersRequest(req *pb.ListDriverOrdersRequest) error {
+	if req == nil {
+		return nil
+	}
+	status := strings.TrimSpace(strings.ToLower(req.Status))
+	if status == "" {
+		return nil
+	}
+	switch biz.OrderStatus(status) {
+	case biz.OrderStatusAccepted, biz.OrderStatusStarted, biz.OrderStatusFinished, biz.OrderStatusCancelled:
+		return nil
+	default:
+		return kratoserrors.BadRequest("INVALID_ORDER_STATUS", "status must be accepted, started, finished, or cancelled")
+	}
+}
+
+func buildOrder(req *pb.CreateOrderRequest, customerID uint64, estimate *biz.EstimateResult) *biz.Order {
 	return &biz.Order{
 		OrderNo:       GenerateOrderNo(),
-		CustomerID:    uint(req.CustomerId),
+		CustomerID:    uint(customerID),
 		Origin:        strings.TrimSpace(req.Origin),
 		Destination:   strings.TrimSpace(req.Destination),
 		Distance:      estimate.Distance,
@@ -137,6 +293,7 @@ func toOrderInfo(order *biz.Order) *pb.OrderInfo {
 		Status:        order.Status,
 		CreatedAt:     order.CreatedAt.Unix(),
 	}
+	// Nullable columns stay omitted in protobuf replies when the event has not happened.
 	if order.DriverID.Valid && order.DriverID.Int64 > 0 {
 		info.DriverId = uint64(order.DriverID.Int64)
 	}
@@ -155,6 +312,28 @@ func toOrderInfo(order *biz.Order) *pb.OrderInfo {
 	return info
 }
 
+func toOrderInfos(orders []*biz.Order) []*pb.OrderInfo {
+	infos := make([]*pb.OrderInfo, 0, len(orders))
+	for _, order := range orders {
+		infos = append(infos, toOrderInfo(order))
+	}
+	return infos
+}
+
+func normalizePage(page, pageSize int32) (int, int) {
+	// Normalize client input once so data-layer queries can assume valid values.
+	if page <= 0 {
+		page = 1
+	}
+	if pageSize <= 0 {
+		pageSize = defaultPageSize
+	}
+	if pageSize > maxPageSize {
+		pageSize = maxPageSize
+	}
+	return int(page), int(pageSize)
+}
+
 // GenerateOrderNo generates a public order number.
 func GenerateOrderNo() string {
 	return fmt.Sprintf(
@@ -166,19 +345,25 @@ func GenerateOrderNo() string {
 
 // CancelOrder cancels an order.
 func (s *OrderService) CancelOrder(ctx context.Context, req *pb.CancelOrderRequest) (*pb.CancelOrderReply, error) {
+	user, err := requireAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if user.Role != "customer" && user.Role != "driver" {
+		return nil, kratoserrors.Forbidden("FORBIDDEN", "customer or driver role required")
+	}
 	if err := validateCancelOrderRequest(req); err != nil {
 		return nil, err
 	}
 
-	operatorType := strings.TrimSpace(strings.ToLower(req.OperatorType))
 	reason := strings.TrimSpace(req.Reason)
-	err := s.OrderData.CancelOrder(ctx, req.OrderId, req.OperatorId, operatorType, reason)
+	err = s.OrderData.CancelOrder(ctx, req.OrderId, user.ID, user.Role, reason)
 	if err != nil {
 		switch kratoserrors.Reason(err) {
 		case "INVALID_CANCEL_OPERATOR":
 			return nil, kratoserrors.BadRequest("INVALID_CANCEL_OPERATOR", "invalid cancel operator")
 		case "ORDER_CANCEL_NOT_ALLOWED":
-			return nil, kratoserrors.Conflict("ORDER_CANCEL_NOT_ALLOWED", "order not found or current status does not allow cancellation")
+			return nil, kratoserrors.Conflict("ORDER_CANCEL_NOT_ALLOWED", "only customers can cancel pending or accepted orders, and drivers can cancel accepted orders")
 		default:
 			s.log.WithContext(ctx).Errorf("cancel order failed: %v", err)
 			return nil, kratoserrors.InternalServer("CANCEL_ORDER_FAILED", "cancel order failed")
@@ -204,15 +389,135 @@ func validateCancelOrderRequest(req *pb.CancelOrderRequest) error {
 	if req.OrderId == 0 {
 		return kratoserrors.BadRequest("INVALID_ORDER_ID", "order_id is required")
 	}
-	operatorType := strings.TrimSpace(strings.ToLower(req.OperatorType))
-	if operatorType != "customer" && operatorType != "driver" {
-		return kratoserrors.BadRequest("INVALID_CANCEL_OPERATOR", "operator_type must be customer or driver")
-	}
-	if req.OperatorId == 0 {
-		return kratoserrors.BadRequest("INVALID_OPERATOR_ID", "operator_id is required")
-	}
 	if len(strings.TrimSpace(req.Reason)) > maxCancelReasonLength {
 		return kratoserrors.BadRequest("INVALID_CANCEL_REASON", "reason is too long")
+	}
+	return nil
+}
+
+// AcceptOrder The driver accepts the order.
+func (s *OrderService) AcceptOrder(ctx context.Context, req *pb.AcceptOrderRequest) (*pb.AcceptOrderReply, error) {
+	user, err := requireAuthRole(ctx, "driver")
+	if err != nil {
+		return nil, err
+	}
+	if err := validateAcceptOrderRequest(req); err != nil {
+		return nil, err
+	}
+	err = s.OrderData.AcceptOrder(ctx, req.OrderId, user.ID)
+	if err != nil {
+		switch kratoserrors.Reason(err) {
+		case "ORDER_ACCEPT_NOT_ALLOWED":
+			return nil, kratoserrors.Conflict("ORDER_ACCEPT_NOT_ALLOWED", "order not found or already accepted")
+		default:
+			s.log.WithContext(ctx).Errorf("accept order failed: %v", err)
+			return nil, kratoserrors.InternalServer("ACCEPT_ORDER_FAILED", "accept order failed")
+		}
+	}
+
+	order, err := s.OrderData.GetOrderById(ctx, int64(req.OrderId))
+	if err != nil {
+		s.log.WithContext(ctx).Errorf("get accepted order failed: %v", err)
+		return nil, kratoserrors.InternalServer("GET_ACCEPTED_ORDER_FAILED", "get accepted order failed")
+	}
+	return &pb.AcceptOrderReply{
+		Code:    0,
+		Message: "accept order success",
+		Order:   toOrderInfo(order),
+	}, nil
+
+}
+
+func validateAcceptOrderRequest(req *pb.AcceptOrderRequest) error {
+	if req == nil {
+		return kratoserrors.BadRequest("INVALID_ACCEPT_ORDER_REQUEST", "request is required")
+	}
+	if req.OrderId == 0 {
+		return kratoserrors.BadRequest("INVALID_ORDER_ID", "order_id is required")
+	}
+	return nil
+}
+
+// StartOrder The driver starts the accepted order.
+func (s *OrderService) StartOrder(ctx context.Context, req *pb.StartOrderRequest) (*pb.StartOrderReply, error) {
+	user, err := requireAuthRole(ctx, "driver")
+	if err != nil {
+		return nil, err
+	}
+	if err := validateStartOrderRequest(req); err != nil {
+		return nil, err
+	}
+	err = s.OrderData.StartOrder(ctx, req.OrderId, user.ID)
+	if err != nil {
+		switch kratoserrors.Reason(err) {
+		case "ORDER_START_NOT_ALLOWED":
+			return nil, kratoserrors.Conflict("ORDER_START_NOT_ALLOWED", "order not found or current status does not allow starting")
+		default:
+			s.log.WithContext(ctx).Errorf("start order failed: %v", err)
+			return nil, kratoserrors.InternalServer("START_ORDER_FAILED", "start order failed")
+		}
+	}
+
+	order, err := s.OrderData.GetOrderById(ctx, int64(req.OrderId))
+	if err != nil {
+		s.log.WithContext(ctx).Errorf("get started order failed: %v", err)
+		return nil, kratoserrors.InternalServer("GET_STARTED_ORDER_FAILED", "get started order failed")
+	}
+	return &pb.StartOrderReply{
+		Code:    0,
+		Message: "start order success",
+		Order:   toOrderInfo(order),
+	}, nil
+}
+
+func validateStartOrderRequest(req *pb.StartOrderRequest) error {
+	if req == nil {
+		return kratoserrors.BadRequest("INVALID_START_ORDER_REQUEST", "request is required")
+	}
+	if req.OrderId == 0 {
+		return kratoserrors.BadRequest("INVALID_ORDER_ID", "order_id is required")
+	}
+	return nil
+}
+
+// FinishOrder The driver finishes the started order.
+func (s *OrderService) FinishOrder(ctx context.Context, req *pb.FinishOrderRequest) (*pb.FinishOrderReply, error) {
+	user, err := requireAuthRole(ctx, "driver")
+	if err != nil {
+		return nil, err
+	}
+	if err := validateFinishOrderRequest(req); err != nil {
+		return nil, err
+	}
+	err = s.OrderData.FinishOrder(ctx, req.OrderId, user.ID)
+	if err != nil {
+		switch kratoserrors.Reason(err) {
+		case "ORDER_FINISH_NOT_ALLOWED":
+			return nil, kratoserrors.Conflict("ORDER_FINISH_NOT_ALLOWED", "order not found or current status does not allow finishing")
+		default:
+			s.log.WithContext(ctx).Errorf("finish order failed: %v", err)
+			return nil, kratoserrors.InternalServer("FINISH_ORDER_FAILED", "finish order failed")
+		}
+	}
+
+	order, err := s.OrderData.GetOrderById(ctx, int64(req.OrderId))
+	if err != nil {
+		s.log.WithContext(ctx).Errorf("get finished order failed: %v", err)
+		return nil, kratoserrors.InternalServer("GET_FINISHED_ORDER_FAILED", "get finished order failed")
+	}
+	return &pb.FinishOrderReply{
+		Code:    0,
+		Message: "finish order success",
+		Order:   toOrderInfo(order),
+	}, nil
+}
+
+func validateFinishOrderRequest(req *pb.FinishOrderRequest) error {
+	if req == nil {
+		return kratoserrors.BadRequest("INVALID_FINISH_ORDER_REQUEST", "request is required")
+	}
+	if req.OrderId == 0 {
+		return kratoserrors.BadRequest("INVALID_ORDER_ID", "order_id is required")
 	}
 	return nil
 }

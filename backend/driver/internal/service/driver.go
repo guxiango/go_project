@@ -3,11 +3,15 @@ package service
 import (
 	"context"
 	"database/sql"
+	orderAPI "driver/api/order"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
+	kerrors "github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
+	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 
 	pb "driver/api/driver"
@@ -63,7 +67,7 @@ func (s *DriverService) GetVerifyCode(ctx context.Context, req *pb.GetVerifyCode
 	}, nil
 }
 
-// 注册
+// Register creates a driver account after verification-code validation.
 func (s *DriverService) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterReply, error) {
 	if ok, message := s.validatePhoneAndVerifyCode(ctx, req.Telephone, req.VerifyCode); !ok {
 		return &pb.RegisterReply{
@@ -71,7 +75,7 @@ func (s *DriverService) Register(ctx context.Context, req *pb.RegisterRequest) (
 			Message: message,
 		}, nil
 	}
-	// 2.判断司机是否已经注册，没注册则注册
+	// Create the driver only when the phone number has not been registered.
 	driver, err := s.DriverData.GetDriverByPhone(ctx, req.Telephone)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return &pb.RegisterReply{
@@ -100,7 +104,7 @@ func (s *DriverService) Register(ctx context.Context, req *pb.RegisterRequest) (
 	}, nil
 }
 
-// Login 登录
+// Login authenticates a driver and issues a JWT.
 func (s *DriverService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginReply, error) {
 	if ok, message := s.validatePhoneAndVerifyCode(ctx, req.Telephone, req.VerifyCode); !ok {
 		return &pb.LoginReply{
@@ -127,7 +131,7 @@ func (s *DriverService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Lo
 			Message: "您的账号已被封禁，请联系客服",
 		}, nil
 	}
-	// 生成token并更新到数据库
+	// Generate a token and persist it so later requests can be checked.
 	secretKey := s.Security.Jwt.Secret
 	if secretKey == "" {
 		return &pb.LoginReply{
@@ -154,7 +158,7 @@ func (s *DriverService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Lo
 	}, nil
 }
 
-// 校验手机号和验证码是否合法
+// validatePhoneAndVerifyCode checks phone format and verification-code correctness.
 func (s *DriverService) validatePhoneAndVerifyCode(ctx context.Context, phone string, verifyCode string) (bool, string) {
 	if !isValidPhoneNumber(phone) {
 		return false, "手机号格式不正确，请输入11位中国大陆手机号"
@@ -172,12 +176,12 @@ func (s *DriverService) validatePhoneAndVerifyCode(ctx context.Context, phone st
 	return true, ""
 }
 
-// 校验手机号是否合法
+// isValidPhoneNumber checks mainland China mobile phone format.
 func isValidPhoneNumber(phone string) bool {
 	return phoneNumberPattern.MatchString(phone)
 }
 
-// 更新司机的资料
+// UpdateDriverProfile updates the current driver's profile.
 func (s *DriverService) UpdateDriverProfile(ctx context.Context, req *pb.UpdateDriverProfileRequest) (*pb.UpdateDriverProfileReply, error) {
 	driverId, ok := getDriverIDFromContext(ctx)
 	if !ok {
@@ -186,7 +190,7 @@ func (s *DriverService) UpdateDriverProfile(ctx context.Context, req *pb.UpdateD
 			Message: "未授权，请先登录",
 		}, nil
 	}
-	// 使用driverId更新当前司机的资料
+	// Update only the profile owned by the current driver.
 	if message := validateDriverProfile(req); message != "" {
 		return &pb.UpdateDriverProfileReply{
 			Code:    1,
@@ -295,58 +299,45 @@ func getDriverIDFromContext(ctx context.Context) (uint, bool) {
 	return driverClaims.DriverId, true
 }
 
-// 修改司机的状态
+// UpdateWorkStatus updates the current driver's work status.
 func (s *DriverService) UpdateWorkStatus(ctx context.Context, req *pb.UpdateWorkStatusRequest) (*pb.UpdateWorkStatusReply, error) {
 	driverId, ok := getDriverIDFromContext(ctx)
 	if !ok {
-		return &pb.UpdateWorkStatusReply{
-			Code:    1,
-			Message: "未授权，请先登录",
-		}, nil
+		return nil, kerrors.Unauthorized("UNAUTHORIZED", "please login first")
 	}
-	targetStatus := req.Status
+	if req == nil {
+		return nil, kerrors.BadRequest("INVALID_UPDATE_WORK_STATUS_REQUEST", "request is required")
+	}
+	targetStatus := strings.TrimSpace(req.Status)
 	if !isDriverEditableStatus(targetStatus) {
-		return &pb.UpdateWorkStatusReply{
-			Code:    1,
-			Message: "不支持的状态",
-		}, nil
+		return nil, kerrors.BadRequest("INVALID_DRIVER_STATUS", "only online or offline can be set manually")
 	}
 	driver, err := s.DriverData.GetDriverByID(ctx, driverId)
 	if err != nil {
-		return &pb.UpdateWorkStatusReply{
-			Code:    1,
-			Message: "获取司机信息失败",
-		}, nil
+		return nil, kerrors.InternalServer("GET_DRIVER_FAILED", "get driver failed")
 	}
 	currentStatus := ""
 	if driver.Status.Valid {
 		currentStatus = driver.Status.String
 	}
 	if !canChangeWorkStatus(currentStatus, targetStatus) {
-		return &pb.UpdateWorkStatusReply{
-			Code:    1,
-			Message: "当前状态不允许切换到目标状态",
-		}, nil
+		return nil, kerrors.Conflict("DRIVER_STATUS_TRANSITION_NOT_ALLOWED", "current status does not allow this transition")
 	}
 	if err := s.DriverData.UpdateDriverStatusByID(ctx, driverId, currentStatus, targetStatus); err != nil {
-		return &pb.UpdateWorkStatusReply{
-			Code:    1,
-			Message: "更新状态失败",
-		}, nil
+		return nil, kerrors.Conflict("DRIVER_STATUS_CHANGED", "driver status changed")
 	}
 	return &pb.UpdateWorkStatusReply{
 		Code:    0,
-		Message: "更新状态成功",
+		Message: "update status success",
 		Status:  targetStatus,
 	}, nil
 }
 
-// 状态校验函数
+// isDriverEditableStatus checks statuses that drivers may set themselves.
 func isDriverEditableStatus(status string) bool {
 	switch status {
 	case driverBiz.DriverStatusOnline,
-		driverBiz.DriverStatusOffline,
-		driverBiz.DriverStatusBusy:
+		driverBiz.DriverStatusOffline:
 		return true
 	default:
 		return false
@@ -358,17 +349,13 @@ func canChangeWorkStatus(currentStatus, targetStatus string) bool {
 	case driverBiz.DriverStatusApproved, driverBiz.DriverStatusOffline:
 		return targetStatus == driverBiz.DriverStatusOnline
 	case driverBiz.DriverStatusOnline:
-		return targetStatus == driverBiz.DriverStatusOffline ||
-			targetStatus == driverBiz.DriverStatusBusy
-	case driverBiz.DriverStatusBusy:
-		return targetStatus == driverBiz.DriverStatusOnline ||
-			targetStatus == driverBiz.DriverStatusOffline
+		return targetStatus == driverBiz.DriverStatusOffline
 	default:
 		return false
 	}
 }
 
-// InternalAuditDriverProfile 管理员审核司机信息并修改司机状态
+// InternalAuditDriverProfile lets admins audit driver profile submissions.
 func (s *DriverService) InternalAuditDriverProfile(ctx context.Context, req *pb.InternalAuditDriverProfileRequest) (*pb.InternalAuditDriverProfileReply, error) {
 	if req.GetDriverId() == 0 || req.GetAdminId() == 0 {
 		return &pb.InternalAuditDriverProfileReply{
@@ -423,7 +410,7 @@ func (s *DriverService) InternalAuditDriverProfile(ctx context.Context, req *pb.
 	}, nil
 }
 
-// InternalListPendingDrivers 给管理员返回司机相关的信息
+// InternalListPendingDrivers returns driver profiles waiting for admin review.
 func (s *DriverService) InternalListPendingDrivers(ctx context.Context, req *pb.InternalListPendingDriversRequest) (*pb.InternalListPendingDriversReply, error) {
 	page := req.GetPage()
 	if page <= 0 {
@@ -466,4 +453,338 @@ func (s *DriverService) InternalListPendingDrivers(ctx context.Context, req *pb.
 		Total:   total,
 		Drivers: msg,
 	}, nil
+}
+
+// AcceptOrder lets the current driver accept a pending order.
+func (s *DriverService) AcceptOrder(ctx context.Context, req *pb.AcceptOrderRequest) (*pb.AcceptOrderReply, error) {
+	if req == nil {
+		return nil, kerrors.BadRequest("INVALID_ACCEPT_ORDER_REQUEST", "request is required")
+	}
+	if req.OrderId == 0 {
+		return nil, kerrors.BadRequest("INVALID_ORDER_ID", "order_id is required")
+	}
+	driverID, ok := getDriverIDFromContext(ctx)
+	if !ok {
+		return nil, kerrors.Unauthorized("UNAUTHORIZED", "please login first")
+	}
+
+	previousStatus, err := s.reserveDriverForOrder(ctx, driverID)
+	if err != nil {
+		return nil, err
+	}
+	orderCtx, orderClient, err := s.authenticatedOrderClient(ctx)
+	if err != nil {
+		_ = s.restoreDriverStatus(ctx, driverID, previousStatus)
+		return nil, err
+	}
+	reply, err := orderClient.AcceptOrder(orderCtx, &orderAPI.AcceptOrderRequest{OrderId: req.OrderId})
+	if err != nil {
+		_ = s.restoreDriverStatus(ctx, driverID, previousStatus)
+		return nil, err
+	}
+	return convertAcceptOrderReply(reply), nil
+}
+
+func (s *DriverService) authenticatedOrderClient(ctx context.Context) (context.Context, orderAPI.OrderClient, error) {
+	driverID, ok := getDriverIDFromContext(ctx)
+	if !ok {
+		return nil, nil, kerrors.Unauthorized("UNAUTHORIZED", "please login first")
+	}
+	orderClient, err := s.DriverBiz.OrderClient()
+	if err != nil {
+		return nil, nil, kerrors.InternalServer("ORDER_CLIENT_UNAVAILABLE", "order client unavailable")
+	}
+	ctx = metadata.AppendToOutgoingContext(
+		ctx,
+		"x-user-id", strconv.FormatUint(uint64(driverID), 10),
+		"x-user-role", "driver",
+	)
+	return ctx, orderClient, nil
+}
+
+func (s *DriverService) reserveDriverForOrder(ctx context.Context, driverID uint) (string, error) {
+	previousStatus, err := s.DriverData.UpdateDriverStatusFromAny(ctx, driverID, []string{
+		driverBiz.DriverStatusApproved,
+		driverBiz.DriverStatusOnline,
+	}, driverBiz.DriverStatusBusy)
+	if err != nil {
+		return "", kerrors.Conflict("DRIVER_NOT_AVAILABLE", "driver must be approved or online before accepting an order")
+	}
+	return previousStatus, nil
+}
+
+func (s *DriverService) restoreDriverStatus(ctx context.Context, driverID uint, previousStatus string) error {
+	if previousStatus == "" {
+		return nil
+	}
+	return s.DriverData.UpdateDriverStatusByID(ctx, driverID, driverBiz.DriverStatusBusy, previousStatus)
+}
+
+func (s *DriverService) releaseDriverAfterOrder(ctx context.Context) error {
+	driverID, ok := getDriverIDFromContext(ctx)
+	if !ok {
+		return kerrors.Unauthorized("UNAUTHORIZED", "please login first")
+	}
+	if err := s.DriverData.UpdateDriverStatusByID(ctx, driverID, driverBiz.DriverStatusBusy, driverBiz.DriverStatusOnline); err != nil {
+		return kerrors.InternalServer("DRIVER_STATUS_RELEASE_FAILED", "order completed but driver status release failed")
+	}
+	return nil
+}
+
+func (s *DriverService) ensureDriverBusy(ctx context.Context) error {
+	driverID, ok := getDriverIDFromContext(ctx)
+	if !ok {
+		return kerrors.Unauthorized("UNAUTHORIZED", "please login first")
+	}
+	driver, err := s.DriverData.GetDriverByID(ctx, driverID)
+	if err != nil {
+		return kerrors.InternalServer("GET_DRIVER_FAILED", "get driver failed")
+	}
+	if !driver.Status.Valid || driver.Status.String != driverBiz.DriverStatusBusy {
+		return kerrors.Conflict("DRIVER_NOT_BUSY", "driver must be busy on an accepted order")
+	}
+	return nil
+}
+
+// StartOrder lets the current driver start an accepted order.
+func (s *DriverService) StartOrder(ctx context.Context, req *pb.StartOrderRequest) (*pb.StartOrderReply, error) {
+	if req == nil {
+		return nil, kerrors.BadRequest("INVALID_START_ORDER_REQUEST", "request is required")
+	}
+	if req.OrderId == 0 {
+		return nil, kerrors.BadRequest("INVALID_ORDER_ID", "order_id is required")
+	}
+	if err := s.ensureDriverBusy(ctx); err != nil {
+		return nil, err
+	}
+	ctx, orderClient, err := s.authenticatedOrderClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+	reply, err := orderClient.StartOrder(ctx, &orderAPI.StartOrderRequest{OrderId: req.OrderId})
+	if err != nil {
+		return nil, err
+	}
+	return convertStartOrderReply(reply), nil
+}
+
+// FinishOrder lets the current driver finish a started order.
+func (s *DriverService) FinishOrder(ctx context.Context, req *pb.FinishOrderRequest) (*pb.FinishOrderReply, error) {
+	if req == nil {
+		return nil, kerrors.BadRequest("INVALID_FINISH_ORDER_REQUEST", "request is required")
+	}
+	if req.OrderId == 0 {
+		return nil, kerrors.BadRequest("INVALID_ORDER_ID", "order_id is required")
+	}
+	if err := s.ensureDriverBusy(ctx); err != nil {
+		return nil, err
+	}
+	ctx, orderClient, err := s.authenticatedOrderClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+	reply, err := orderClient.FinishOrder(ctx, &orderAPI.FinishOrderRequest{OrderId: req.OrderId})
+	if err != nil {
+		return nil, err
+	}
+	if err := s.releaseDriverAfterOrder(ctx); err != nil {
+		return nil, err
+	}
+	return convertFinishOrderReply(reply), nil
+}
+
+// CancelOrder lets the current driver cancel an accepted order.
+func (s *DriverService) CancelOrder(ctx context.Context, req *pb.CancelOrderRequest) (*pb.CancelOrderReply, error) {
+	if req == nil {
+		return nil, kerrors.BadRequest("INVALID_CANCEL_ORDER_REQUEST", "request is required")
+	}
+	if req.OrderId == 0 {
+		return nil, kerrors.BadRequest("INVALID_ORDER_ID", "order_id is required")
+	}
+	if err := s.ensureDriverBusy(ctx); err != nil {
+		return nil, err
+	}
+	ctx, orderClient, err := s.authenticatedOrderClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+	reply, err := orderClient.CancelOrder(ctx, &orderAPI.CancelOrderRequest{
+		OrderId: req.OrderId,
+		Reason:  strings.TrimSpace(req.Reason),
+	})
+	if err != nil {
+		return nil, err
+	}
+	if err := s.releaseDriverAfterOrder(ctx); err != nil {
+		return nil, err
+	}
+	return convertCancelOrderReply(reply), nil
+}
+
+// GetOrder returns one order visible to the current driver.
+func (s *DriverService) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.GetOrderReply, error) {
+	if req == nil {
+		return nil, kerrors.BadRequest("INVALID_GET_ORDER_REQUEST", "request is required")
+	}
+	if req.OrderId == 0 {
+		return nil, kerrors.BadRequest("INVALID_ORDER_ID", "order_id is required")
+	}
+	ctx, orderClient, err := s.authenticatedOrderClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+	reply, err := orderClient.GetOrder(ctx, &orderAPI.GetOrderRequest{OrderId: req.OrderId})
+	if err != nil {
+		return nil, err
+	}
+	return convertGetOrderReply(reply), nil
+}
+
+// ListPendingOrders returns orders available for drivers to accept.
+func (s *DriverService) ListPendingOrders(ctx context.Context, req *pb.ListPendingOrdersRequest) (*pb.ListPendingOrdersReply, error) {
+	if req == nil {
+		req = &pb.ListPendingOrdersRequest{}
+	}
+	ctx, orderClient, err := s.authenticatedOrderClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+	reply, err := orderClient.ListPendingOrders(ctx, &orderAPI.ListPendingOrdersRequest{
+		Page:     req.Page,
+		PageSize: req.PageSize,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return convertListPendingOrdersReply(reply), nil
+}
+
+// ListDriverOrders returns orders assigned to the current driver.
+func (s *DriverService) ListDriverOrders(ctx context.Context, req *pb.ListDriverOrdersRequest) (*pb.ListDriverOrdersReply, error) {
+	if req == nil {
+		req = &pb.ListDriverOrdersRequest{}
+	}
+	ctx, orderClient, err := s.authenticatedOrderClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+	reply, err := orderClient.ListDriverOrders(ctx, &orderAPI.ListDriverOrdersRequest{
+		Status:   strings.TrimSpace(req.Status),
+		Page:     req.Page,
+		PageSize: req.PageSize,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return convertListDriverOrdersReply(reply), nil
+}
+
+func convertAcceptOrderReply(reply *orderAPI.AcceptOrderReply) *pb.AcceptOrderReply {
+	if reply == nil {
+		return nil
+	}
+	return &pb.AcceptOrderReply{
+		Code:    reply.Code,
+		Message: reply.Message,
+		Order:   convertOrderInfo(reply.Order),
+	}
+}
+
+func convertStartOrderReply(reply *orderAPI.StartOrderReply) *pb.StartOrderReply {
+	if reply == nil {
+		return nil
+	}
+	return &pb.StartOrderReply{
+		Code:    reply.Code,
+		Message: reply.Message,
+		Order:   convertOrderInfo(reply.Order),
+	}
+}
+
+func convertFinishOrderReply(reply *orderAPI.FinishOrderReply) *pb.FinishOrderReply {
+	if reply == nil {
+		return nil
+	}
+	return &pb.FinishOrderReply{
+		Code:    reply.Code,
+		Message: reply.Message,
+		Order:   convertOrderInfo(reply.Order),
+	}
+}
+
+func convertCancelOrderReply(reply *orderAPI.CancelOrderReply) *pb.CancelOrderReply {
+	if reply == nil {
+		return nil
+	}
+	return &pb.CancelOrderReply{
+		Code:    reply.Code,
+		Message: reply.Message,
+		Order:   convertOrderInfo(reply.Order),
+	}
+}
+
+func convertGetOrderReply(reply *orderAPI.GetOrderReply) *pb.GetOrderReply {
+	if reply == nil {
+		return nil
+	}
+	return &pb.GetOrderReply{
+		Code:    reply.Code,
+		Message: reply.Message,
+		Order:   convertOrderInfo(reply.Order),
+	}
+}
+
+func convertListPendingOrdersReply(reply *orderAPI.ListPendingOrdersReply) *pb.ListPendingOrdersReply {
+	if reply == nil {
+		return nil
+	}
+	return &pb.ListPendingOrdersReply{
+		Code:    reply.Code,
+		Message: reply.Message,
+		Orders:  convertOrderInfos(reply.Orders),
+		Total:   reply.Total,
+	}
+}
+
+func convertListDriverOrdersReply(reply *orderAPI.ListDriverOrdersReply) *pb.ListDriverOrdersReply {
+	if reply == nil {
+		return nil
+	}
+	return &pb.ListDriverOrdersReply{
+		Code:    reply.Code,
+		Message: reply.Message,
+		Orders:  convertOrderInfos(reply.Orders),
+		Total:   reply.Total,
+	}
+}
+
+func convertOrderInfos(orders []*orderAPI.OrderInfo) []*pb.OrderInfo {
+	infos := make([]*pb.OrderInfo, 0, len(orders))
+	for _, order := range orders {
+		infos = append(infos, convertOrderInfo(order))
+	}
+	return infos
+}
+
+func convertOrderInfo(order *orderAPI.OrderInfo) *pb.OrderInfo {
+	if order == nil {
+		return nil
+	}
+	return &pb.OrderInfo{
+		OrderId:       order.OrderId,
+		OrderNo:       order.OrderNo,
+		CustomerId:    order.CustomerId,
+		DriverId:      order.DriverId,
+		Origin:        order.Origin,
+		Destination:   order.Destination,
+		Distance:      order.Distance,
+		Duration:      order.Duration,
+		EstimatePrice: order.EstimatePrice,
+		Status:        order.Status,
+		CreatedAt:     order.CreatedAt,
+		AcceptedAt:    order.AcceptedAt,
+		StartedAt:     order.StartedAt,
+		FinishedAt:    order.FinishedAt,
+		CancelledAt:   order.CancelledAt,
+	}
 }
