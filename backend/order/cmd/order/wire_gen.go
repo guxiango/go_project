@@ -42,13 +42,18 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confService *conf.Ser
 		cleanup()
 		return nil, nil, err
 	}
-	orderBiz := biz.NewOrderBiz()
+	orderBiz, cleanup2, err := biz.NewOrderBiz(consulRegistry)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	orderData := data.NewOrderData(dataData, orderBiz)
-	orderService := service.NewOrderService(orderBiz, orderData)
-	grpcServer := server.NewGRPCServer(confServer, greeterService,orderService, logger)
-	httpServer := server.NewHTTPServer(confServer, greeterService, logger)
+	orderService := service.NewOrderService(orderBiz, orderData, logger)
+	grpcServer := server.NewGRPCServer(confServer, greeterService, orderService, logger)
+	httpServer := server.NewHTTPServer(confServer, greeterService, orderService, logger)
 	app := newApp(logger, grpcServer, httpServer, consulRegistry)
 	return app, func() {
+		cleanup2()
 		cleanup()
 	}, nil
 }

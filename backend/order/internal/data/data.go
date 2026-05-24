@@ -33,7 +33,9 @@ func NewData(c *conf.Data) (*Data, func(), error) {
 
 	data := &Data{}
 	var err error
-	data.Mdb, err = gorm.Open(mysql.Open(databaseConfig.Source), &gorm.Config{})
+	data.Mdb, err = gorm.Open(mysql.Open(databaseConfig.Source), &gorm.Config{
+		TranslateError: true,
+	})
 	if err != nil {
 		return nil, nil, err
 	}

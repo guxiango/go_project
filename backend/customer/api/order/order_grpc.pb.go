@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.29.3
-// source: api/order/order.proto
+// source: order/order.proto
 
 package order
 
@@ -19,21 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Order_CreateOrder_FullMethodName      = "/api.order.Order/CreateOrder"
 	Order_GetEstimatePrice_FullMethodName = "/api.order.Order/GetEstimatePrice"
-	Order_CancelOrder_FullMethodName      = "/api.order.Order/CancelOrder"
 )
 
 // OrderClient is the client API for Order service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OrderClient interface {
-	// 创建订单
-	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*CreateOrderReply, error)
-	// 预估价格
 	GetEstimatePrice(ctx context.Context, in *GetEstimatePriceRequest, opts ...grpc.CallOption) (*GetEstimatePriceReply, error)
-	// 取消订单
-	CancelOrder(ctx context.Context, in *CancelOrderRequest, opts ...grpc.CallOption) (*CancelOrderReply, error)
 }
 
 type orderClient struct {
@@ -42,16 +35,6 @@ type orderClient struct {
 
 func NewOrderClient(cc grpc.ClientConnInterface) OrderClient {
 	return &orderClient{cc}
-}
-
-func (c *orderClient) CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*CreateOrderReply, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateOrderReply)
-	err := c.cc.Invoke(ctx, Order_CreateOrder_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *orderClient) GetEstimatePrice(ctx context.Context, in *GetEstimatePriceRequest, opts ...grpc.CallOption) (*GetEstimatePriceReply, error) {
@@ -64,26 +47,11 @@ func (c *orderClient) GetEstimatePrice(ctx context.Context, in *GetEstimatePrice
 	return out, nil
 }
 
-func (c *orderClient) CancelOrder(ctx context.Context, in *CancelOrderRequest, opts ...grpc.CallOption) (*CancelOrderReply, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CancelOrderReply)
-	err := c.cc.Invoke(ctx, Order_CancelOrder_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // OrderServer is the server API for Order service.
 // All implementations must embed UnimplementedOrderServer
 // for forward compatibility.
 type OrderServer interface {
-	// 创建订单
-	CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderReply, error)
-	// 预估价格
 	GetEstimatePrice(context.Context, *GetEstimatePriceRequest) (*GetEstimatePriceReply, error)
-	// 取消订单
-	CancelOrder(context.Context, *CancelOrderRequest) (*CancelOrderReply, error)
 	mustEmbedUnimplementedOrderServer()
 }
 
@@ -94,14 +62,8 @@ type OrderServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrderServer struct{}
 
-func (UnimplementedOrderServer) CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderReply, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateOrder not implemented")
-}
 func (UnimplementedOrderServer) GetEstimatePrice(context.Context, *GetEstimatePriceRequest) (*GetEstimatePriceReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetEstimatePrice not implemented")
-}
-func (UnimplementedOrderServer) CancelOrder(context.Context, *CancelOrderRequest) (*CancelOrderReply, error) {
-	return nil, status.Error(codes.Unimplemented, "method CancelOrder not implemented")
 }
 func (UnimplementedOrderServer) mustEmbedUnimplementedOrderServer() {}
 func (UnimplementedOrderServer) testEmbeddedByValue()               {}
@@ -124,24 +86,6 @@ func RegisterOrderServer(s grpc.ServiceRegistrar, srv OrderServer) {
 	s.RegisterService(&Order_ServiceDesc, srv)
 }
 
-func _Order_CreateOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateOrderRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrderServer).CreateOrder(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Order_CreateOrder_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderServer).CreateOrder(ctx, req.(*CreateOrderRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Order_GetEstimatePrice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetEstimatePriceRequest)
 	if err := dec(in); err != nil {
@@ -160,24 +104,6 @@ func _Order_GetEstimatePrice_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Order_CancelOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CancelOrderRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrderServer).CancelOrder(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Order_CancelOrder_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderServer).CancelOrder(ctx, req.(*CancelOrderRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Order_ServiceDesc is the grpc.ServiceDesc for Order service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -186,18 +112,10 @@ var Order_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*OrderServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateOrder",
-			Handler:    _Order_CreateOrder_Handler,
-		},
-		{
 			MethodName: "GetEstimatePrice",
 			Handler:    _Order_GetEstimatePrice_Handler,
 		},
-		{
-			MethodName: "CancelOrder",
-			Handler:    _Order_CancelOrder_Handler,
-		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/order/order.proto",
+	Metadata: "order/order.proto",
 }

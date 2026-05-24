@@ -3,8 +3,170 @@
 
 openapi: 3.0.3
 info:
-    title: ""
+    title: Order API
     version: 0.0.1
-paths: {}
+paths:
+    /orders:
+        post:
+            tags:
+                - Order
+            description: 创建订单
+            operationId: Order_CreateOrder
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateOrderReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /orders/estimate-price:
+        get:
+            tags:
+                - Order
+            description: 预估价格
+            operationId: Order_GetEstimatePrice
+            parameters:
+                - name: origin
+                  in: query
+                  schema:
+                    type: string
+                - name: destination
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetEstimatePriceReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
 components:
-    schemas: {}
+    schemas:
+        CreateOrderReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                order:
+                    $ref: '#/components/schemas/OrderInfo'
+            description: 创建订单响应
+        CreateOrderRequest:
+            type: object
+            properties:
+                customerId:
+                    type: string
+                origin:
+                    type: string
+                destination:
+                    type: string
+                distance:
+                    type: string
+                    description: 'Deprecated: order service calculates these fields from map/valuation.'
+                duration:
+                    type: string
+                    description: 'Deprecated: order service calculates these fields from map/valuation.'
+                estimatePrice:
+                    type: string
+                    description: 'Deprecated: order service calculates these fields from map/valuation.'
+                remark:
+                    type: string
+            description: 创建订单请求
+        GetEstimatePriceReply:
+            type: object
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                origin:
+                    type: string
+                destination:
+                    type: string
+                distance:
+                    type: string
+                duration:
+                    type: string
+                price:
+                    type: string
+            description: 预估价格响应
+        GoogleProtobufAny:
+            type: object
+            properties:
+                '@type':
+                    type: string
+                    description: The type of the serialized message.
+            additionalProperties: true
+            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        OrderInfo:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                customerId:
+                    type: string
+                driverId:
+                    type: string
+                origin:
+                    type: string
+                destination:
+                    type: string
+                distance:
+                    type: string
+                duration:
+                    type: string
+                estimatePrice:
+                    type: string
+                status:
+                    type: string
+                createdAt:
+                    type: string
+                acceptedAt:
+                    type: string
+                startedAt:
+                    type: string
+                finishedAt:
+                    type: string
+                cancelledAt:
+                    type: string
+            description: 订单信息
+        Status:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+                    format: int32
+                message:
+                    type: string
+                    description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+                details:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GoogleProtobufAny'
+                    description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
+            description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+tags:
+    - name: Order

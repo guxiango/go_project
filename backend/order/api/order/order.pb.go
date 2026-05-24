@@ -7,6 +7,7 @@
 package order
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -21,7 +22,137 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// 订单相关信息
+// 取消订单的请求
+type CancelOrderRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       uint64                 `protobuf:"varint,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OperatorId    uint64                 `protobuf:"varint,2,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`      // 发起取消人的id
+	OperatorType  string                 `protobuf:"bytes,3,opt,name=operator_type,json=operatorType,proto3" json:"operator_type,omitempty"` // customer / driver / system
+	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelOrderRequest) Reset() {
+	*x = CancelOrderRequest{}
+	mi := &file_api_order_order_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelOrderRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelOrderRequest) ProtoMessage() {}
+
+func (x *CancelOrderRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_order_order_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelOrderRequest.ProtoReflect.Descriptor instead.
+func (*CancelOrderRequest) Descriptor() ([]byte, []int) {
+	return file_api_order_order_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *CancelOrderRequest) GetOrderId() uint64 {
+	if x != nil {
+		return x.OrderId
+	}
+	return 0
+}
+
+func (x *CancelOrderRequest) GetOperatorId() uint64 {
+	if x != nil {
+		return x.OperatorId
+	}
+	return 0
+}
+
+func (x *CancelOrderRequest) GetOperatorType() string {
+	if x != nil {
+		return x.OperatorType
+	}
+	return ""
+}
+
+func (x *CancelOrderRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+// 取消订单响应
+type CancelOrderReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          int64                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Order         *OrderInfo             `protobuf:"bytes,3,opt,name=order,proto3" json:"order,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelOrderReply) Reset() {
+	*x = CancelOrderReply{}
+	mi := &file_api_order_order_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelOrderReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelOrderReply) ProtoMessage() {}
+
+func (x *CancelOrderReply) ProtoReflect() protoreflect.Message {
+	mi := &file_api_order_order_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelOrderReply.ProtoReflect.Descriptor instead.
+func (*CancelOrderReply) Descriptor() ([]byte, []int) {
+	return file_api_order_order_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *CancelOrderReply) GetCode() int64 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *CancelOrderReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CancelOrderReply) GetOrder() *OrderInfo {
+	if x != nil {
+		return x.Order
+	}
+	return nil
+}
+
+// 订单信息
 type OrderInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OrderId       uint64                 `protobuf:"varint,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -30,9 +161,9 @@ type OrderInfo struct {
 	DriverId      uint64                 `protobuf:"varint,4,opt,name=driver_id,json=driverId,proto3" json:"driver_id,omitempty"`
 	Origin        string                 `protobuf:"bytes,5,opt,name=origin,proto3" json:"origin,omitempty"`
 	Destination   string                 `protobuf:"bytes,6,opt,name=destination,proto3" json:"destination,omitempty"`
-	Distance      int64                  `protobuf:"varint,7,opt,name=distance,proto3" json:"distance,omitempty"`                                // 米
-	Duration      int64                  `protobuf:"varint,8,opt,name=duration,proto3" json:"duration,omitempty"`                                // 秒
-	EstimatePrice int64                  `protobuf:"varint,9,opt,name=estimate_price,json=estimatePrice,proto3" json:"estimate_price,omitempty"` // 分
+	Distance      int64                  `protobuf:"varint,7,opt,name=distance,proto3" json:"distance,omitempty"`
+	Duration      int64                  `protobuf:"varint,8,opt,name=duration,proto3" json:"duration,omitempty"`
+	EstimatePrice int64                  `protobuf:"varint,9,opt,name=estimate_price,json=estimatePrice,proto3" json:"estimate_price,omitempty"`
 	Status        string                 `protobuf:"bytes,10,opt,name=status,proto3" json:"status,omitempty"`
 	CreatedAt     int64                  `protobuf:"varint,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	AcceptedAt    int64                  `protobuf:"varint,12,opt,name=accepted_at,json=acceptedAt,proto3" json:"accepted_at,omitempty"`
@@ -45,7 +176,7 @@ type OrderInfo struct {
 
 func (x *OrderInfo) Reset() {
 	*x = OrderInfo{}
-	mi := &file_api_order_order_proto_msgTypes[0]
+	mi := &file_api_order_order_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -57,7 +188,7 @@ func (x *OrderInfo) String() string {
 func (*OrderInfo) ProtoMessage() {}
 
 func (x *OrderInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_api_order_order_proto_msgTypes[0]
+	mi := &file_api_order_order_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -70,7 +201,7 @@ func (x *OrderInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderInfo.ProtoReflect.Descriptor instead.
 func (*OrderInfo) Descriptor() ([]byte, []int) {
-	return file_api_order_order_proto_rawDescGZIP(), []int{0}
+	return file_api_order_order_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *OrderInfo) GetOrderId() uint64 {
@@ -178,23 +309,26 @@ func (x *OrderInfo) GetCancelledAt() int64 {
 	return 0
 }
 
-// 创建订单的请求
+// 创建订单请求
 type CreateOrderRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	CustomerId    uint64                 `protobuf:"varint,1,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	Origin        string                 `protobuf:"bytes,2,opt,name=origin,proto3" json:"origin,omitempty"`
-	Destination   string                 `protobuf:"bytes,3,opt,name=destination,proto3" json:"destination,omitempty"`
-	Distance      int64                  `protobuf:"varint,4,opt,name=distance,proto3" json:"distance,omitempty"`                                // 可选：如果由 order 调 map/valuation，可不传
-	Duration      int64                  `protobuf:"varint,5,opt,name=duration,proto3" json:"duration,omitempty"`                                // 可选
-	EstimatePrice int64                  `protobuf:"varint,6,opt,name=estimate_price,json=estimatePrice,proto3" json:"estimate_price,omitempty"` // 可选
-	Remark        string                 `protobuf:"bytes,7,opt,name=remark,proto3" json:"remark,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	CustomerId  uint64                 `protobuf:"varint,1,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
+	Origin      string                 `protobuf:"bytes,2,opt,name=origin,proto3" json:"origin,omitempty"`
+	Destination string                 `protobuf:"bytes,3,opt,name=destination,proto3" json:"destination,omitempty"`
+	// Deprecated: order service calculates these fields from map/valuation.
+	Distance int64 `protobuf:"varint,4,opt,name=distance,proto3" json:"distance,omitempty"`
+	// Deprecated: order service calculates these fields from map/valuation.
+	Duration int64 `protobuf:"varint,5,opt,name=duration,proto3" json:"duration,omitempty"`
+	// Deprecated: order service calculates these fields from map/valuation.
+	EstimatePrice int64  `protobuf:"varint,6,opt,name=estimate_price,json=estimatePrice,proto3" json:"estimate_price,omitempty"`
+	Remark        string `protobuf:"bytes,7,opt,name=remark,proto3" json:"remark,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateOrderRequest) Reset() {
 	*x = CreateOrderRequest{}
-	mi := &file_api_order_order_proto_msgTypes[1]
+	mi := &file_api_order_order_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -206,7 +340,7 @@ func (x *CreateOrderRequest) String() string {
 func (*CreateOrderRequest) ProtoMessage() {}
 
 func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_order_order_proto_msgTypes[1]
+	mi := &file_api_order_order_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -219,7 +353,7 @@ func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrderRequest) Descriptor() ([]byte, []int) {
-	return file_api_order_order_proto_rawDescGZIP(), []int{1}
+	return file_api_order_order_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CreateOrderRequest) GetCustomerId() uint64 {
@@ -271,7 +405,7 @@ func (x *CreateOrderRequest) GetRemark() string {
 	return ""
 }
 
-// 创建订单的回复
+// 创建订单响应
 type CreateOrderReply struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          int64                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
@@ -283,7 +417,7 @@ type CreateOrderReply struct {
 
 func (x *CreateOrderReply) Reset() {
 	*x = CreateOrderReply{}
-	mi := &file_api_order_order_proto_msgTypes[2]
+	mi := &file_api_order_order_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -295,7 +429,7 @@ func (x *CreateOrderReply) String() string {
 func (*CreateOrderReply) ProtoMessage() {}
 
 func (x *CreateOrderReply) ProtoReflect() protoreflect.Message {
-	mi := &file_api_order_order_proto_msgTypes[2]
+	mi := &file_api_order_order_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -308,7 +442,7 @@ func (x *CreateOrderReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderReply.ProtoReflect.Descriptor instead.
 func (*CreateOrderReply) Descriptor() ([]byte, []int) {
-	return file_api_order_order_proto_rawDescGZIP(), []int{2}
+	return file_api_order_order_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CreateOrderReply) GetCode() int64 {
@@ -332,11 +466,167 @@ func (x *CreateOrderReply) GetOrder() *OrderInfo {
 	return nil
 }
 
+// 预估价格请求
+type GetEstimatePriceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Origin        string                 `protobuf:"bytes,1,opt,name=origin,proto3" json:"origin,omitempty"`
+	Destination   string                 `protobuf:"bytes,2,opt,name=destination,proto3" json:"destination,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEstimatePriceRequest) Reset() {
+	*x = GetEstimatePriceRequest{}
+	mi := &file_api_order_order_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEstimatePriceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEstimatePriceRequest) ProtoMessage() {}
+
+func (x *GetEstimatePriceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_order_order_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEstimatePriceRequest.ProtoReflect.Descriptor instead.
+func (*GetEstimatePriceRequest) Descriptor() ([]byte, []int) {
+	return file_api_order_order_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetEstimatePriceRequest) GetOrigin() string {
+	if x != nil {
+		return x.Origin
+	}
+	return ""
+}
+
+func (x *GetEstimatePriceRequest) GetDestination() string {
+	if x != nil {
+		return x.Destination
+	}
+	return ""
+}
+
+// 预估价格响应
+type GetEstimatePriceReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          int64                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Origin        string                 `protobuf:"bytes,3,opt,name=origin,proto3" json:"origin,omitempty"`
+	Destination   string                 `protobuf:"bytes,4,opt,name=destination,proto3" json:"destination,omitempty"`
+	Distance      int64                  `protobuf:"varint,5,opt,name=distance,proto3" json:"distance,omitempty"`
+	Duration      int64                  `protobuf:"varint,6,opt,name=duration,proto3" json:"duration,omitempty"`
+	Price         int64                  `protobuf:"varint,7,opt,name=price,proto3" json:"price,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEstimatePriceReply) Reset() {
+	*x = GetEstimatePriceReply{}
+	mi := &file_api_order_order_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEstimatePriceReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEstimatePriceReply) ProtoMessage() {}
+
+func (x *GetEstimatePriceReply) ProtoReflect() protoreflect.Message {
+	mi := &file_api_order_order_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEstimatePriceReply.ProtoReflect.Descriptor instead.
+func (*GetEstimatePriceReply) Descriptor() ([]byte, []int) {
+	return file_api_order_order_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetEstimatePriceReply) GetCode() int64 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *GetEstimatePriceReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *GetEstimatePriceReply) GetOrigin() string {
+	if x != nil {
+		return x.Origin
+	}
+	return ""
+}
+
+func (x *GetEstimatePriceReply) GetDestination() string {
+	if x != nil {
+		return x.Destination
+	}
+	return ""
+}
+
+func (x *GetEstimatePriceReply) GetDistance() int64 {
+	if x != nil {
+		return x.Distance
+	}
+	return 0
+}
+
+func (x *GetEstimatePriceReply) GetDuration() int64 {
+	if x != nil {
+		return x.Duration
+	}
+	return 0
+}
+
+func (x *GetEstimatePriceReply) GetPrice() int64 {
+	if x != nil {
+		return x.Price
+	}
+	return 0
+}
+
 var File_api_order_order_proto protoreflect.FileDescriptor
 
 const file_api_order_order_proto_rawDesc = "" +
 	"\n" +
-	"\x15api/order/order.proto\x12\tapi.order\"\xd3\x03\n" +
+	"\x15api/order/order.proto\x12\tapi.order\x1a\x1cgoogle/api/annotations.proto\"\x8d\x01\n" +
+	"\x12CancelOrderRequest\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\x04R\aorderId\x12\x1f\n" +
+	"\voperator_id\x18\x02 \x01(\x04R\n" +
+	"operatorId\x12#\n" +
+	"\roperator_type\x18\x03 \x01(\tR\foperatorType\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\"l\n" +
+	"\x10CancelOrderReply\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\x03R\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12*\n" +
+	"\x05order\x18\x03 \x01(\v2\x14.api.order.OrderInfoR\x05order\"\xd3\x03\n" +
 	"\tOrderInfo\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\x04R\aorderId\x12\x19\n" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x12\x1f\n" +
@@ -371,9 +661,22 @@ const file_api_order_order_proto_rawDesc = "" +
 	"\x10CreateOrderReply\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x03R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12*\n" +
-	"\x05order\x18\x03 \x01(\v2\x14.api.order.OrderInfoR\x05order2R\n" +
-	"\x05Order\x12I\n" +
-	"\vCreateOrder\x12\x1d.api.order.CreateOrderRequest\x1a\x1b.api.order.CreateOrderReplyB$\n" +
+	"\x05order\x18\x03 \x01(\v2\x14.api.order.OrderInfoR\x05order\"S\n" +
+	"\x17GetEstimatePriceRequest\x12\x16\n" +
+	"\x06origin\x18\x01 \x01(\tR\x06origin\x12 \n" +
+	"\vdestination\x18\x02 \x01(\tR\vdestination\"\xcd\x01\n" +
+	"\x15GetEstimatePriceReply\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\x03R\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x16\n" +
+	"\x06origin\x18\x03 \x01(\tR\x06origin\x12 \n" +
+	"\vdestination\x18\x04 \x01(\tR\vdestination\x12\x1a\n" +
+	"\bdistance\x18\x05 \x01(\x03R\bdistance\x12\x1a\n" +
+	"\bduration\x18\x06 \x01(\x03R\bduration\x12\x14\n" +
+	"\x05price\x18\a \x01(\x03R\x05price2\xab\x02\n" +
+	"\x05Order\x12]\n" +
+	"\vCreateOrder\x12\x1d.api.order.CreateOrderRequest\x1a\x1b.api.order.CreateOrderReply\"\x12\x82\xd3\xe4\x93\x02\f:\x01*\"\a/orders\x12x\n" +
+	"\x10GetEstimatePrice\x12\".api.order.GetEstimatePriceRequest\x1a .api.order.GetEstimatePriceReply\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/orders/estimate-price\x12I\n" +
+	"\vCancelOrder\x12\x1d.api.order.CancelOrderRequest\x1a\x1b.api.order.CancelOrderReplyB$\n" +
 	"\tapi.orderP\x01Z\x15order/api/order;orderb\x06proto3"
 
 var (
@@ -388,21 +691,30 @@ func file_api_order_order_proto_rawDescGZIP() []byte {
 	return file_api_order_order_proto_rawDescData
 }
 
-var file_api_order_order_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_api_order_order_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_api_order_order_proto_goTypes = []any{
-	(*OrderInfo)(nil),          // 0: api.order.OrderInfo
-	(*CreateOrderRequest)(nil), // 1: api.order.CreateOrderRequest
-	(*CreateOrderReply)(nil),   // 2: api.order.CreateOrderReply
+	(*CancelOrderRequest)(nil),      // 0: api.order.CancelOrderRequest
+	(*CancelOrderReply)(nil),        // 1: api.order.CancelOrderReply
+	(*OrderInfo)(nil),               // 2: api.order.OrderInfo
+	(*CreateOrderRequest)(nil),      // 3: api.order.CreateOrderRequest
+	(*CreateOrderReply)(nil),        // 4: api.order.CreateOrderReply
+	(*GetEstimatePriceRequest)(nil), // 5: api.order.GetEstimatePriceRequest
+	(*GetEstimatePriceReply)(nil),   // 6: api.order.GetEstimatePriceReply
 }
 var file_api_order_order_proto_depIdxs = []int32{
-	0, // 0: api.order.CreateOrderReply.order:type_name -> api.order.OrderInfo
-	1, // 1: api.order.Order.CreateOrder:input_type -> api.order.CreateOrderRequest
-	2, // 2: api.order.Order.CreateOrder:output_type -> api.order.CreateOrderReply
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 0: api.order.CancelOrderReply.order:type_name -> api.order.OrderInfo
+	2, // 1: api.order.CreateOrderReply.order:type_name -> api.order.OrderInfo
+	3, // 2: api.order.Order.CreateOrder:input_type -> api.order.CreateOrderRequest
+	5, // 3: api.order.Order.GetEstimatePrice:input_type -> api.order.GetEstimatePriceRequest
+	0, // 4: api.order.Order.CancelOrder:input_type -> api.order.CancelOrderRequest
+	4, // 5: api.order.Order.CreateOrder:output_type -> api.order.CreateOrderReply
+	6, // 6: api.order.Order.GetEstimatePrice:output_type -> api.order.GetEstimatePriceReply
+	1, // 7: api.order.Order.CancelOrder:output_type -> api.order.CancelOrderReply
+	5, // [5:8] is the sub-list for method output_type
+	2, // [2:5] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_api_order_order_proto_init() }
@@ -416,7 +728,7 @@ func file_api_order_order_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_order_order_proto_rawDesc), len(file_api_order_order_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

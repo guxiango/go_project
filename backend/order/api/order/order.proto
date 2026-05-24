@@ -2,15 +2,46 @@ syntax = "proto3";
 
 package api.order;
 
+import "google/api/annotations.proto";
+
 option go_package = "order/api/order;order";
 option java_multiple_files = true;
 option java_package = "api.order";
 
 service Order {
-  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderReply);
+  // 创建订单
+  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderReply) {
+    option (google.api.http) = {
+      post: "/orders"
+      body: "*"
+    };
+  }
+  // 预估价格
+  rpc GetEstimatePrice (GetEstimatePriceRequest) returns (GetEstimatePriceReply) {
+    option (google.api.http) = {
+      get: "/orders/estimate-price"
+    };
+  }
+  // 取消订单
+  rpc CancelOrder (CancelOrderRequest) returns (CancelOrderReply);
 }
 
-// 订单相关信息
+// 取消订单的请求
+message CancelOrderRequest {
+  uint64 order_id = 1;
+  uint64 operator_id = 2;   // 发起取消人的id
+  string operator_type = 3; // customer / driver / system
+  string reason = 4;
+}
+
+// 取消订单响应
+message CancelOrderReply {
+  int64 code = 1;
+  string message = 2;
+  OrderInfo order = 3;
+}
+
+// 订单信息
 message OrderInfo {
   uint64 order_id = 1;
   string order_no = 2;
@@ -21,10 +52,9 @@ message OrderInfo {
   string origin = 5;
   string destination = 6;
 
-  int64 distance = 7;        // 米
-  int64 duration = 8;        // 秒
-  int64 estimate_price = 9;  // 分
-
+  int64 distance = 7;
+  int64 duration = 8;
+  int64 estimate_price = 9;
   string status = 10;
 
   int64 created_at = 11;
@@ -34,23 +64,42 @@ message OrderInfo {
   int64 cancelled_at = 15;
 }
 
-// 创建订单的请求
+// 创建订单请求
 message CreateOrderRequest {
   uint64 customer_id = 1;
 
   string origin = 2;
   string destination = 3;
 
-  int64 distance = 4;        // 可选：如果由 order 调 map/valuation，可不传
-  int64 duration = 5;        // 可选
-  int64 estimate_price = 6;  // 可选
-
+  // Deprecated: order service calculates these fields from map/valuation.
+  int64 distance = 4;
+  // Deprecated: order service calculates these fields from map/valuation.
+  int64 duration = 5;
+  // Deprecated: order service calculates these fields from map/valuation.
+  int64 estimate_price = 6;
   string remark = 7;
 }
 
-// 创建订单的回复
+// 创建订单响应
 message CreateOrderReply {
   int64 code = 1;
   string message = 2;
   OrderInfo order = 3;
+}
+
+// 预估价格请求
+message GetEstimatePriceRequest {
+  string origin = 1;
+  string destination = 2;
+}
+
+// 预估价格响应
+message GetEstimatePriceReply {
+  int64 code = 1;
+  string message = 2;
+  string origin = 3;
+  string destination = 4;
+  int64 distance = 5;
+  int64 duration = 6;
+  int64 price = 7;
 }

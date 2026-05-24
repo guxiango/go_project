@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package api.order;
+
+option go_package = "customer/api/order;order";
+
+service Order {
+  rpc GetEstimatePrice (GetEstimatePriceRequest) returns (GetEstimatePriceReply);
+}
+
+message GetEstimatePriceRequest {
+  string origin = 1;
+  string destination = 2;
+}
+
+message GetEstimatePriceReply {
+  int64 code = 1;
+  string message = 2;
+  string origin = 3;
+  string destination = 4;
+  int64 distance = 5;
+  int64 duration = 6;
+  int64 price = 7;
+}
